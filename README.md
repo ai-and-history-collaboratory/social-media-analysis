@@ -16,7 +16,12 @@ Each analysis includes:
 
 The first analysis covers the [@Marinelivesorg](https://x.com/Marinelivesorg) Twitter account (est. July 2012), which has been the public voice of the MarineLives project for over a decade.
 
-**[View the live dashboard →](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/)**
+**[View all dashboards →](https://ai-and-history-collaboratory.github.io/social-media-analysis/)**
+
+Two dashboards are available:
+
+- **[Content Explorer](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/)** — volume trends, hashtags, mentions, domains, content mix, and top tweets with year filtering
+- **[Project Biography: Topic Evolution](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/topics.html)** — quarterly NMF topic modelling showing how the project's thematic focus shifted over thirteen years
 
 ### Summary statistics
 
@@ -43,9 +48,11 @@ The first analysis covers the [@Marinelivesorg](https://x.com/Marinelivesorg) Tw
 
 | File | Purpose |
 |------|---------|
-| `twitter/index.html` | Interactive dashboard (self-contained, no server required) |
+| `index.html` | Landing page linking to all dashboards |
+| `twitter/index.html` | Content Explorer dashboard (self-contained, no server required) |
+| `twitter/topics.html` | Project Biography: Topic Evolution dashboard |
 | `twitter/extract_twitter_archive.py` | Python script to extract and aggregate data from a Twitter archive |
-| `twitter/dashboard_data.json` | Pre-aggregated JSON data powering the dashboard |
+| `twitter/dashboard_data.json` | Pre-aggregated JSON data powering the Content Explorer |
 
 ### Reproducing the analysis
 
