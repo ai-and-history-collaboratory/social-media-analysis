@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarineLives Concept Network Explorer (2016-2018)</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --card: #1e293b;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #38bdf8;
+  --border: #334155;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+header { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+header h1 { font-size: 1.5rem; margin-bottom: 0.3rem; }
+header p { color: var(--muted); font-size: 0.9rem; }
+
+.controls { display: flex; gap: 1rem; padding: 1rem 2rem; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+.controls label { color: var(--muted); font-size: 0.85rem; }
+.controls select, .controls input { background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 0.3rem 0.6rem; font-size: 0.85rem; }
+.year-btns { display: flex; gap: 0.3rem; }
+.year-btn { background: var(--card); color: var(--muted); border: 1px solid var(--border); border-radius: 4px; padding: 0.3rem 0.8rem; cursor: pointer; font-size: 0.85rem; }
+.year-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); font-weight: 600; }
+
+.main { display: flex; flex: 1; overflow: hidden; }
+body { display: flex; flex-direction: column; height: 100vh; }
+
+.graph-panel { flex: 1; position: relative; }
+canvas#network { width: 100%; height: 100%; }
+.graph-info { position: absolute; bottom: 1rem; left: 1rem; color: var(--muted); font-size: 0.8rem; }
+
+.side-panel { width: 360px; overflow-y: auto; border-left: 1px solid var(--border); padding: 1rem; }
+.side-panel h2 { font-size: 1.1rem; margin-bottom: 0.8rem; color: var(--accent); }
+.side-panel h3 { font-size: 0.95rem; margin: 1rem 0 0.5rem; color: var(--text); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.node-detail { display: none; }
+.node-detail.active { display: block; }
+.connection-list { list-style: none; padding: 0; }
+.connection-list li { padding: 0.3rem 0; border-bottom: 1px solid var(--border); font-size: 0.85rem; display: flex; justify-content: space-between; }
+.connection-list .weight { color: var(--accent); font-weight: 600; }
+
+.year-comparison { margin-top: 1rem; }
+.year-bar { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; font-size: 0.8rem; }
+.year-bar-label { width: 35px; color: var(--muted); }
+.year-bar-fill { height: 16px; border-radius: 3px; background: var(--accent); transition: width 0.3s; }
+.year-bar-value { color: var(--muted); font-size: 0.75rem; }
+
+.top-changes { margin-top: 1rem; }
+.change-item { font-size: 0.8rem; color: var(--muted); padding: 0.2rem 0; }
+.change-item .emerging { color: #10b981; }
+.change-item .fading { color: #ef4444; }
+
+.tooltip { position: absolute; background: #1a1a2e; border: 1px solid var(--border); padding: 0.5rem 0.8rem; border-radius: 6px; font-size: 0.8rem; pointer-events: none; display: none; z-index: 100; max-width: 250px; }
+
+.info-toggle { background: none; border: 1px solid var(--border); color: var(--muted); padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-left: auto; }
+.info-toggle:hover { color: var(--text); border-color: var(--muted); }
+
+.info-panel { display: none; border-bottom: 1px solid var(--border); background: var(--card); padding: 1.5rem 2rem; overflow-y: auto; max-height: 60vh; }
+.info-panel.open { display: block; }
+.info-panel h3 { color: var(--accent); font-size: 0.95rem; margin: 1rem 0 0.4rem; }
+.info-panel h3:first-child { margin-top: 0; }
+.info-panel p, .info-panel li { color: var(--muted); font-size: 0.85rem; line-height: 1.5; }
+.info-panel p { margin-bottom: 0.5rem; }
+.info-panel ul { margin: 0.3rem 0 0.8rem 1.2rem; }
+.info-panel li { margin-bottom: 0.2rem; }
+.info-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+@media (max-width: 900px) { .info-columns { grid-template-columns: 1fr; } }
+.info-panel .concept-categories { columns: 2; column-gap: 2rem; font-size: 0.8rem; }
+.info-panel .concept-categories dt { color: var(--text); font-weight: 600; margin-top: 0.5rem; }
+.info-panel .concept-categories dd { color: var(--muted); margin-left: 0.5rem; margin-bottom: 0.2rem; }
+</style>
+</head>
+<body>
+<!-- Navigation -->
+<nav style="background: #111827; padding: 0.5rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; font-size: 0.82rem; border-bottom: 1px solid #1f2937;">
+    <a href="../" style="color: #94a3b8; text-decoration: none;">← All Dashboards</a>
+    <span style="color: #334155;">|</span>
+    <a href="./" style="color: #94a3b8; text-decoration: none;">Content Explorer</a>
+    <a href="topics.html" style="color: #94a3b8; text-decoration: none;">Topic Evolution</a>
+    <span style="color: #38bdf8; font-weight: 600;">Concept Network</span>
+    <a href="https://github.com/ai-and-history-collaboratory/social-media-analysis" style="color: #94a3b8; text-decoration: none; margin-left: auto;">GitHub →</a>
+</nav>
+<header>
+  <h1>MarineLives Concept Network Explorer</h1>
+  <p>Intellectual structure of @Marinelivesorg tweets, 2016-2018 &middot; 4,981 original tweets &middot; 35 concepts</p>
+</header>
+
+<div class="controls">
+  <label>Year:</label>
+  <div class="year-btns">
+    <button class="year-btn active" data-year="all">All 2016-18</button>
+    <button class="year-btn" data-year="2016">2016</button>
+    <button class="year-btn" data-year="2017">2017</button>
+    <button class="year-btn" data-year="2018">2018</button>
+  </div>
+  <label style="margin-left:1rem;">Find concept:</label>
+  <select id="conceptSearch" style="min-width:180px;">
+    <option value="">— select —</option>
+  </select>
+  <label style="margin-left:1rem;">Min edge weight:</label>
+  <input type="range" id="minWeight" min="3" max="50" value="10" style="width:120px;">
+  <span id="minWeightVal" style="color:var(--accent);font-size:0.85rem;">10</span>
+  <button class="info-toggle" id="infoToggle">ℹ Methodology &amp; Guide</button>
+</div>
+
+<div class="info-panel" id="infoPanel">
+  <div class="info-columns">
+    <div>
+      <h3>How to Use This Explorer</h3>
+      <p><strong>The graph</strong> shows concepts as coloured circles and their co-occurrences as connecting lines. Concepts that appear together frequently in tweets are pulled closer by the layout algorithm; concepts that rarely co-occur drift apart. The thickness and opacity of each line reflects the strength of the connection.</p>
+      <ul>
+        <li><strong>Year buttons</strong> — switch between 2016, 2017, 2018, or all three combined. The network restructures to show only the connections present in that year. This is the most revealing control: watch how the centre of gravity shifts from the MapHackathon cluster (2016) to the Signs of Literacy cluster (2018).</li>
+        <li><strong>Find concept</strong> — select a concept from the dropdown to highlight it and see its detail panel. This is an alternative to clicking nodes directly.</li>
+        <li><strong>Min edge weight</strong> — the slider filters out weaker connections. Drag right to see only the strongest intellectual links; drag left to reveal finer-grained associations. A weight of 10 means the two concepts appeared together in at least 10 tweets.</li>
+        <li><strong>Click a node</strong> — highlights that concept and its connections, dimming everything else. The side panel shows year-by-year frequency and a ranked list of connections.</li>
+        <li><strong>Drag a node</strong> — reposition it manually. The force layout will continue to act on other nodes.</li>
+        <li><strong>Scroll to zoom</strong> — zoom in to untangle dense areas, zoom out for the full picture.</li>
+        <li><strong>Drag the background</strong> — pan the view.</li>
+        <li><strong>"← Back to overview"</strong> — in the side panel, click this to deselect and return to the network summary.</li>
+      </ul>
+
+      <h3>What the Side Panel Shows</h3>
+      <p>In <strong>overview mode</strong> (no node selected), the side panel lists the strongest connections in the current year view and the year-on-year shifts — which concepts grew or shrank between 2016 and 2018.</p>
+      <p>In <strong>node detail mode</strong> (after selecting a concept), it shows the concept's frequency in each year as horizontal bars, plus its strongest connections ranked by co-occurrence weight.</p>
+    </div>
+    <div>
+      <h3>Methodology</h3>
+      <p>This explorer visualises the intellectual structure of 4,981 original tweets posted by @Marinelivesorg during 2016–2018. Retweets are excluded.</p>
+      <p><strong>Concept extraction:</strong> A dictionary of 35 concepts was defined manually, informed by TF-IDF keyphrase extraction (bigrams and trigrams, min_df=3, max_df=0.3, 3,000 features) applied to the cleaned tweet text. Each concept is defined by a set of trigger words and phrases — for example, the "Textiles" concept is triggered by any of: textile, textiles, silk, wool, linen, cloth, cotton, garment, fabric, dye, dyeing. A tweet is tagged with a concept if any of its trigger terms appear in the cleaned text.</p>
+      <p><strong>Important limitation:</strong> The 35 concepts were chosen by the analyst, not derived statistically. This means the map reflects a particular interpretation of the project's intellectual landscape. Themes not anticipated by the analyst will be absent. The number 35 was not a target — concepts were added until the analyst ran out of recognisable themes — but a different analyst might identify more, fewer, or different categories.</p>
+      <p><strong>Co-occurrence:</strong> Two concepts are "connected" when they appear in the same tweet. The edge weight between any pair is simply the count of tweets containing both. This is computed separately for each year and for the combined 2016–2018 period.</p>
+      <p><strong>Layout:</strong> The graph uses a force-directed layout: nodes repel each other (preventing overlap), edges attract connected nodes (pulling co-occurring concepts together), and a weak central gravity prevents the graph from drifting off-screen. The layout stabilises after approximately 300 simulation steps. Node size reflects tweet frequency; node colour reflects the concept category (see legend).</p>
+      <p><strong>Coverage:</strong> 77% of original tweets (3,824 of 4,981) were tagged with at least one concept. The remaining 23% contain conversational text, acknowledgements, or topics outside the 35-concept dictionary.</p>
+
+      <h3>Concept Categories</h3>
+      <dl class="concept-categories">
+        <dt>Project Strands (amber)</dt>
+        <dd>MapHackathon, Signs of Literacy, Textiles Glossary, Occupational Signatures</dd>
+        <dt>Material Culture (red)</dt>
+        <dd>Textiles, Ships &amp; Maritime, Cargo &amp; Trade</dd>
+        <dt>Geography (blue)</dt>
+        <dd>London &amp; Thames, Dutch/Amsterdam, Hamburg/German, Mediterranean, Iberian, Scandinavian</dd>
+        <dt>Legal/Archival (purple)</dt>
+        <dd>HCA/Admiralty, Depositions, Notarial</dd>
+        <dt>Documents (pink)</dt>
+        <dd>Signatures &amp; Marks, Palaeography, Transcription</dd>
+        <dt>Spatial (green)</dt>
+        <dd>GIS &amp; Mapping, Historical Maps, Gazetteer, Hydrology, Built Environment, Sounds &amp; Environment</dd>
+        <dt>Technology (cyan)</dt>
+        <dd>IIIF, Transkribus, Recogito, Machine Learning, Wiki Platform, Data &amp; Datasets</dd>
+        <dt>Social/Academic (orange)</dt>
+        <dd>Collaboration, Twitterstorians, Academic Events</dd>
+        <dt>Period (grey)</dt>
+        <dd>Early Modern</dd>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="graph-panel">
+    <canvas id="network"></canvas>
+    <div class="graph-info">Click a node to explore &middot; Drag to reposition &middot; Scroll to zoom</div>
+    <div class="tooltip" id="tooltip"></div>
+  </div>
+  <div class="side-panel">
+    <h2>Network Overview</h2>
+    <div class="legend" id="legend"></div>
+    <div id="overviewPanel">
+      <h3>Strongest Connections</h3>
+      <ul class="connection-list" id="topEdges"></ul>
+      <div class="top-changes">
+        <h3>Year-on-Year Shifts</h3>
+        <div id="yearShifts"></div>
+      </div>
+    </div>
+    <div class="node-detail" id="nodeDetail">
+      <h3 id="nodeTitle"></h3>
+      <p id="nodeCategory" style="color:var(--muted);font-size:0.8rem;margin-bottom:0.5rem;"></p>
+      <div class="year-comparison" id="yearBars"></div>
+      <h3 style="margin-top:1rem;">Strongest Connections</h3>
+      <ul class="connection-list" id="nodeEdges"></ul>
+      <p style="margin-top:1rem;"><a href="#" id="backToOverview" style="color:var(--accent);font-size:0.85rem;">← Back to overview</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = {"concepts": ["academic_events", "built_environment", "cargo_trade", "collaboration", "data_datasets", "depositions", "dutch_amsterdam", "early_modern", "gazetteer", "gis_mapping", "hamburg_german", "hca_admiralty", "historical_maps", "hydrology", "iberian", "iiif", "london", "machine_learning", "maphackathon", "mediterranean", "notarial", "occupational_signatures", "palaeography", "recogito", "scandinavian", "ships_maritime", "signatures_marks", "signs_of_literacy", "sounds_environment", "textiles", "textiles_glossary", "transcription", "transkribus", "twitterstorians", "wiki_platform"], "concept_frequencies": {"academic_events": 197, "built_environment": 67, "cargo_trade": 384, "collaboration": 567, "data_datasets": 640, "depositions": 93, "dutch_amsterdam": 278, "early_modern": 1000, "gazetteer": 18, "gis_mapping": 307, "hamburg_german": 161, "hca_admiralty": 250, "historical_maps": 976, "hydrology": 86, "iberian": 122, "iiif": 59, "london": 753, "machine_learning": 113, "maphackathon": 761, "mediterranean": 23, "notarial": 59, "occupational_signatures": 134, "palaeography": 125, "recogito": 17, "scandinavian": 41, "ships_maritime": 664, "signatures_marks": 479, "signs_of_literacy": 390, "sounds_environment": 137, "textiles": 290, "textiles_glossary": 144, "transcription": 144, "transkribus": 37, "twitterstorians": 163, "wiki_platform": 141}, "concept_frequencies_by_year": {"2016": {"academic_events": 48, "built_environment": 36, "cargo_trade": 171, "collaboration": 189, "data_datasets": 246, "depositions": 26, "dutch_amsterdam": 148, "early_modern": 384, "gazetteer": 0, "gis_mapping": 178, "hamburg_german": 112, "hca_admiralty": 94, "historical_maps": 494, "hydrology": 37, "iberian": 80, "iiif": 1, "london": 400, "machine_learning": 1, "maphackathon": 355, "mediterranean": 5, "notarial": 12, "occupational_signatures": 0, "palaeography": 41, "recogito": 0, "scandinavian": 20, "ships_maritime": 312, "signatures_marks": 82, "signs_of_literacy": 57, "sounds_environment": 69, "textiles": 47, "textiles_glossary": 0, "transcription": 34, "transkribus": 2, "twitterstorians": 64, "wiki_platform": 69}, "2017": {"academic_events": 25, "built_environment": 27, "cargo_trade": 111, "collaboration": 190, "data_datasets": 181, "depositions": 8, "dutch_amsterdam": 33, "early_modern": 247, "gazetteer": 4, "gis_mapping": 93, "hamburg_german": 16, "hca_admiralty": 64, "historical_maps": 459, "hydrology": 43, "iberian": 16, "iiif": 6, "london": 246, "machine_learning": 7, "maphackathon": 401, "mediterranean": 8, "notarial": 4, "occupational_signatures": 0, "palaeography": 21, "recogito": 0, "scandinavian": 9, "ships_maritime": 152, "signatures_marks": 30, "signs_of_literacy": 2, "sounds_environment": 58, "textiles": 41, "textiles_glossary": 0, "transcription": 45, "transkribus": 3, "twitterstorians": 33, "wiki_platform": 29}, "2018": {"academic_events": 124, "built_environment": 4, "cargo_trade": 102, "collaboration": 188, "data_datasets": 213, "depositions": 59, "dutch_amsterdam": 97, "early_modern": 369, "gazetteer": 14, "gis_mapping": 36, "hamburg_german": 33, "hca_admiralty": 92, "historical_maps": 23, "hydrology": 6, "iberian": 26, "iiif": 52, "london": 107, "machine_learning": 105, "maphackathon": 5, "mediterranean": 10, "notarial": 43, "occupational_signatures": 134, "palaeography": 63, "recogito": 17, "scandinavian": 12, "ships_maritime": 200, "signatures_marks": 367, "signs_of_literacy": 331, "sounds_environment": 10, "textiles": 202, "textiles_glossary": 144, "transcription": 65, "transkribus": 32, "twitterstorians": 66, "wiki_platform": 43}}, "edges": [{"source": "historical_maps", "target": "maphackathon", "weight": 761}, {"source": "historical_maps", "target": "london", "weight": 376}, {"source": "london", "target": "maphackathon", "weight": 320}, {"source": "early_modern", "target": "london", "weight": 274}, {"source": "early_modern", "target": "ships_maritime", "weight": 246}, {"source": "gis_mapping", "target": "historical_maps", "weight": 220}, {"source": "early_modern", "target": "textiles", "weight": 204}, {"source": "collaboration", "target": "historical_maps", "weight": 201}, {"source": "data_datasets", "target": "early_modern", "weight": 180}, {"source": "early_modern", "target": "historical_maps", "weight": 177}, {"source": "data_datasets", "target": "historical_maps", "weight": 171}, {"source": "collaboration", "target": "maphackathon", "weight": 170}, {"source": "cargo_trade", "target": "early_modern", "weight": 150}, {"source": "cargo_trade", "target": "ships_maritime", "weight": 149}, {"source": "textiles", "target": "textiles_glossary", "weight": 144}, {"source": "early_modern", "target": "textiles_glossary", "weight": 139}, {"source": "early_modern", "target": "maphackathon", "weight": 137}, {"source": "data_datasets", "target": "ships_maritime", "weight": 136}, {"source": "gis_mapping", "target": "maphackathon", "weight": 136}, {"source": "signatures_marks", "target": "signs_of_literacy", "weight": 136}, {"source": "occupational_signatures", "target": "signatures_marks", "weight": 134}, {"source": "data_datasets", "target": "maphackathon", "weight": 127}, {"source": "early_modern", "target": "signatures_marks", "weight": 123}, {"source": "london", "target": "ships_maritime", "weight": 118}, {"source": "data_datasets", "target": "london", "weight": 103}, {"source": "collaboration", "target": "early_modern", "weight": 97}, {"source": "data_datasets", "target": "signs_of_literacy", "weight": 97}, {"source": "ships_maritime", "target": "signatures_marks", "weight": 94}, {"source": "historical_maps", "target": "sounds_environment", "weight": 92}, {"source": "dutch_amsterdam", "target": "ships_maritime", "weight": 89}, {"source": "data_datasets", "target": "signatures_marks", "weight": 88}, {"source": "early_modern", "target": "signs_of_literacy", "weight": 88}, {"source": "collaboration", "target": "london", "weight": 87}, {"source": "maphackathon", "target": "sounds_environment", "weight": 84}, {"source": "ships_maritime", "target": "signs_of_literacy", "weight": 81}, {"source": "gis_mapping", "target": "london", "weight": 80}, {"source": "london", "target": "sounds_environment", "weight": 80}, {"source": "dutch_amsterdam", "target": "early_modern", "weight": 79}, {"source": "cargo_trade", "target": "london", "weight": 77}, {"source": "early_modern", "target": "hca_admiralty", "weight": 74}, {"source": "cargo_trade", "target": "data_datasets", "weight": 64}, {"source": "hydrology", "target": "london", "weight": 63}, {"source": "data_datasets", "target": "gis_mapping", "weight": 62}, {"source": "early_modern", "target": "twitterstorians", "weight": 62}, {"source": "hca_admiralty", "target": "ships_maritime", "weight": 62}, {"source": "academic_events", "target": "signs_of_literacy", "weight": 60}, {"source": "collaboration", "target": "data_datasets", "weight": 60}, {"source": "collaboration", "target": "gis_mapping", "weight": 60}, {"source": "early_modern", "target": "gis_mapping", "weight": 60}, {"source": "collaboration", "target": "transcription", "weight": 59}, {"source": "machine_learning", "target": "signs_of_literacy", "weight": 55}, {"source": "cargo_trade", "target": "signatures_marks", "weight": 54}, {"source": "hca_admiralty", "target": "signatures_marks", "weight": 52}, {"source": "early_modern", "target": "hamburg_german", "weight": 50}, {"source": "historical_maps", "target": "hydrology", "weight": 49}, {"source": "data_datasets", "target": "hca_admiralty", "weight": 47}, {"source": "depositions", "target": "hca_admiralty", "weight": 47}, {"source": "cargo_trade", "target": "dutch_amsterdam", "weight": 46}, {"source": "historical_maps", "target": "ships_maritime", "weight": 46}, {"source": "london", "target": "textiles", "weight": 46}, {"source": "built_environment", "target": "historical_maps", "weight": 44}, {"source": "collaboration", "target": "signs_of_literacy", "weight": 44}, {"source": "london", "target": "signatures_marks", "weight": 41}, {"source": "depositions", "target": "signatures_marks", "weight": 39}, {"source": "dutch_amsterdam", "target": "hamburg_german", "weight": 39}, {"source": "dutch_amsterdam", "target": "signatures_marks", "weight": 39}, {"source": "early_modern", "target": "iberian", "weight": 39}, {"source": "hamburg_german", "target": "ships_maritime", "weight": 39}, {"source": "built_environment", "target": "london", "weight": 38}, {"source": "cargo_trade", "target": "iberian", "weight": 38}, {"source": "hydrology", "target": "maphackathon", "weight": 38}, {"source": "built_environment", "target": "maphackathon", "weight": 35}, {"source": "collaboration", "target": "textiles", "weight": 35}, {"source": "dutch_amsterdam", "target": "signs_of_literacy", "weight": 35}, {"source": "data_datasets", "target": "dutch_amsterdam", "weight": 34}, {"source": "early_modern", "target": "occupational_signatures", "weight": 34}, {"source": "academic_events", "target": "data_datasets", "weight": 33}, {"source": "collaboration", "target": "twitterstorians", "weight": 33}, {"source": "data_datasets", "target": "machine_learning", "weight": 33}, {"source": "notarial", "target": "signatures_marks", "weight": 33}, {"source": "dutch_amsterdam", "target": "hca_admiralty", "weight": 32}, {"source": "machine_learning", "target": "signatures_marks", "weight": 32}, {"source": "collaboration", "target": "signatures_marks", "weight": 31}, {"source": "hca_admiralty", "target": "london", "weight": 31}, {"source": "occupational_signatures", "target": "ships_maritime", "weight": 31}, {"source": "occupational_signatures", "target": "signs_of_literacy", "weight": 31}, {"source": "cargo_trade", "target": "hca_admiralty", "weight": 30}, {"source": "early_modern", "target": "sounds_environment", "weight": 30}, {"source": "iberian", "target": "ships_maritime", "weight": 30}, {"source": "dutch_amsterdam", "target": "iberian", "weight": 29}, {"source": "dutch_amsterdam", "target": "twitterstorians", "weight": 29}, {"source": "early_modern", "target": "transcription", "weight": 29}, {"source": "hamburg_german", "target": "iberian", "weight": 28}, {"source": "hca_admiralty", "target": "signs_of_literacy", "weight": 28}, {"source": "palaeography", "target": "signs_of_literacy", "weight": 28}, {"source": "signs_of_literacy", "target": "twitterstorians", "weight": 28}, {"source": "academic_events", "target": "machine_learning", "weight": 27}, {"source": "collaboration", "target": "machine_learning", "weight": 27}, {"source": "ships_maritime", "target": "textiles", "weight": 27}, {"source": "cargo_trade", "target": "hamburg_german", "weight": 26}, {"source": "cargo_trade", "target": "textiles", "weight": 26}, {"source": "collaboration", "target": "ships_maritime", "weight": 26}, {"source": "collaboration", "target": "sounds_environment", "weight": 26}, {"source": "dutch_amsterdam", "target": "london", "weight": 26}, {"source": "early_modern", "target": "palaeography", "weight": 26}, {"source": "collaboration", "target": "hca_admiralty", "weight": 25}, {"source": "early_modern", "target": "wiki_platform", "weight": 25}, {"source": "london", "target": "signs_of_literacy", "weight": 25}, {"source": "maphackathon", "target": "ships_maritime", "weight": 25}, {"source": "academic_events", "target": "collaboration", "weight": 24}, {"source": "academic_events", "target": "dutch_amsterdam", "weight": 24}, {"source": "cargo_trade", "target": "signs_of_literacy", "weight": 23}, {"source": "data_datasets", "target": "twitterstorians", "weight": 23}, {"source": "depositions", "target": "early_modern", "weight": 23}, {"source": "depositions", "target": "ships_maritime", "weight": 23}, {"source": "early_modern", "target": "hydrology", "weight": 23}, {"source": "hamburg_german", "target": "historical_maps", "weight": 23}, {"source": "academic_events", "target": "early_modern", "weight": 22}, {"source": "collaboration", "target": "textiles_glossary", "weight": 22}, {"source": "gis_mapping", "target": "twitterstorians", "weight": 22}, {"source": "academic_events", "target": "iiif", "weight": 20}, {"source": "iiif", "target": "signs_of_literacy", "weight": 20}, {"source": "academic_events", "target": "ships_maritime", "weight": 19}, {"source": "collaboration", "target": "palaeography", "weight": 19}, {"source": "data_datasets", "target": "hamburg_german", "weight": 19}, {"source": "historical_maps", "target": "signatures_marks", "weight": 19}, {"source": "palaeography", "target": "transcription", "weight": 19}, {"source": "data_datasets", "target": "wiki_platform", "weight": 18}, {"source": "gis_mapping", "target": "ships_maritime", "weight": 18}, {"source": "historical_maps", "target": "textiles", "weight": 18}, {"source": "london", "target": "textiles_glossary", "weight": 18}, {"source": "ships_maritime", "target": "twitterstorians", "weight": 18}, {"source": "academic_events", "target": "historical_maps", "weight": 17}, {"source": "academic_events", "target": "signatures_marks", "weight": 17}, {"source": "cargo_trade", "target": "collaboration", "weight": 17}, {"source": "collaboration", "target": "occupational_signatures", "weight": 17}, {"source": "historical_maps", "target": "twitterstorians", "weight": 17}, {"source": "cargo_trade", "target": "twitterstorians", "weight": 16}, {"source": "collaboration", "target": "transkribus", "weight": 16}, {"source": "hamburg_german", "target": "signatures_marks", "weight": 16}, {"source": "hydrology", "target": "ships_maritime", "weight": 16}, {"source": "textiles", "target": "transcription", "weight": 16}, {"source": "built_environment", "target": "data_datasets", "weight": 15}, {"source": "cargo_trade", "target": "occupational_signatures", "weight": 15}, {"source": "maphackathon", "target": "twitterstorians", "weight": 15}, {"source": "palaeography", "target": "signatures_marks", "weight": 15}, {"source": "academic_events", "target": "gis_mapping", "weight": 14}, {"source": "academic_events", "target": "twitterstorians", "weight": 14}, {"source": "cargo_trade", "target": "palaeography", "weight": 14}, {"source": "collaboration", "target": "dutch_amsterdam", "weight": 14}, {"source": "dutch_amsterdam", "target": "historical_maps", "weight": 14}, {"source": "gis_mapping", "target": "sounds_environment", "weight": 14}, {"source": "hca_admiralty", "target": "occupational_signatures", "weight": 14}, {"source": "hca_admiralty", "target": "transcription", "weight": 14}, {"source": "historical_maps", "target": "wiki_platform", "weight": 14}, {"source": "hydrology", "target": "sounds_environment", "weight": 14}, {"source": "maphackathon", "target": "signatures_marks", "weight": 14}, {"source": "maphackathon", "target": "textiles", "weight": 14}, {"source": "palaeography", "target": "ships_maritime", "weight": 14}, {"source": "built_environment", "target": "early_modern", "weight": 13}, {"source": "collaboration", "target": "wiki_platform", "weight": 13}, {"source": "depositions", "target": "occupational_signatures", "weight": 13}, {"source": "dutch_amsterdam", "target": "gis_mapping", "weight": 13}, {"source": "early_modern", "target": "notarial", "weight": 13}, {"source": "hca_admiralty", "target": "notarial", "weight": 13}, {"source": "iberian", "target": "london", "weight": 13}, {"source": "iberian", "target": "signatures_marks", "weight": 13}, {"source": "iiif", "target": "signatures_marks", "weight": 13}, {"source": "signatures_marks", "target": "twitterstorians", "weight": 13}, {"source": "academic_events", "target": "maphackathon", "weight": 12}, {"source": "cargo_trade", "target": "historical_maps", "weight": 12}, {"source": "collaboration", "target": "depositions", "weight": 12}, {"source": "data_datasets", "target": "palaeography", "weight": 12}, {"source": "data_datasets", "target": "textiles", "weight": 12}, {"source": "depositions", "target": "signs_of_literacy", "weight": 12}, {"source": "gazetteer", "target": "ships_maritime", "weight": 12}, {"source": "gis_mapping", "target": "hydrology", "weight": 12}, {"source": "hca_admiralty", "target": "historical_maps", "weight": 12}, {"source": "london", "target": "twitterstorians", "weight": 12}, {"source": "scandinavian", "target": "ships_maritime", "weight": 12}, {"source": "ships_maritime", "target": "textiles_glossary", "weight": 12}, {"source": "textiles", "target": "wiki_platform", "weight": 12}, {"source": "transcription", "target": "twitterstorians", "weight": 12}, {"source": "academic_events", "target": "cargo_trade", "weight": 11}, {"source": "academic_events", "target": "london", "weight": 11}, {"source": "academic_events", "target": "palaeography", "weight": 11}, {"source": "cargo_trade", "target": "wiki_platform", "weight": 11}, {"source": "data_datasets", "target": "transcription", "weight": 11}, {"source": "dutch_amsterdam", "target": "scandinavian", "weight": 11}, {"source": "dutch_amsterdam", "target": "transcription", "weight": 11}, {"source": "early_modern", "target": "machine_learning", "weight": 11}, {"source": "early_modern", "target": "mediterranean", "weight": 11}, {"source": "gis_mapping", "target": "hamburg_german", "weight": 11}, {"source": "iberian", "target": "textiles", "weight": 11}, {"source": "mediterranean", "target": "ships_maritime", "weight": 11}, {"source": "palaeography", "target": "twitterstorians", "weight": 11}, {"source": "ships_maritime", "target": "wiki_platform", "weight": 11}, {"source": "signatures_marks", "target": "sounds_environment", "weight": 11}, {"source": "academic_events", "target": "hca_admiralty", "weight": 10}, {"source": "data_datasets", "target": "depositions", "weight": 10}, {"source": "data_datasets", "target": "hydrology", "weight": 10}, {"source": "dutch_amsterdam", "target": "textiles", "weight": 10}, {"source": "early_modern", "target": "gazetteer", "weight": 10}, {"source": "hamburg_german", "target": "hca_admiralty", "weight": 10}, {"source": "iberian", "target": "twitterstorians", "weight": 10}, {"source": "notarial", "target": "signs_of_literacy", "weight": 10}, {"source": "textiles", "target": "twitterstorians", "weight": 10}, {"source": "cargo_trade", "target": "textiles_glossary", "weight": 9}, {"source": "collaboration", "target": "iiif", "weight": 9}, {"source": "data_datasets", "target": "occupational_signatures", "weight": 9}, {"source": "depositions", "target": "london", "weight": 9}, {"source": "dutch_amsterdam", "target": "notarial", "weight": 9}, {"source": "dutch_amsterdam", "target": "occupational_signatures", "weight": 9}, {"source": "early_modern", "target": "scandinavian", "weight": 9}, {"source": "gis_mapping", "target": "signatures_marks", "weight": 9}, {"source": "hamburg_german", "target": "london", "weight": 9}, {"source": "hamburg_german", "target": "textiles", "weight": 9}, {"source": "historical_maps", "target": "palaeography", "weight": 9}, {"source": "london", "target": "wiki_platform", "weight": 9}, {"source": "machine_learning", "target": "palaeography", "weight": 9}, {"source": "academic_events", "target": "transkribus", "weight": 8}, {"source": "cargo_trade", "target": "maphackathon", "weight": 8}, {"source": "data_datasets", "target": "sounds_environment", "weight": 8}, {"source": "depositions", "target": "notarial", "weight": 8}, {"source": "dutch_amsterdam", "target": "mediterranean", "weight": 8}, {"source": "gis_mapping", "target": "signs_of_literacy", "weight": 8}, {"source": "hca_admiralty", "target": "iberian", "weight": 8}, {"source": "hca_admiralty", "target": "twitterstorians", "weight": 8}, {"source": "historical_maps", "target": "signs_of_literacy", "weight": 8}, {"source": "london", "target": "occupational_signatures", "weight": 8}, {"source": "machine_learning", "target": "ships_maritime", "weight": 8}, {"source": "machine_learning", "target": "twitterstorians", "weight": 8}, {"source": "signs_of_literacy", "target": "transcription", "weight": 8}, {"source": "textiles_glossary", "target": "transcription", "weight": 8}, {"source": "textiles_glossary", "target": "wiki_platform", "weight": 8}, {"source": "transcription", "target": "wiki_platform", "weight": 8}, {"source": "academic_events", "target": "transcription", "weight": 7}, {"source": "built_environment", "target": "hydrology", "weight": 7}, {"source": "cargo_trade", "target": "mediterranean", "weight": 7}, {"source": "cargo_trade", "target": "notarial", "weight": 7}, {"source": "cargo_trade", "target": "transcription", "weight": 7}, {"source": "data_datasets", "target": "iberian", "weight": 7}, {"source": "gis_mapping", "target": "wiki_platform", "weight": 7}, {"source": "london", "target": "palaeography", "weight": 7}, {"source": "machine_learning", "target": "transcription", "weight": 7}, {"source": "machine_learning", "target": "transkribus", "weight": 7}, {"source": "notarial", "target": "occupational_signatures", "weight": 7}, {"source": "notarial", "target": "ships_maritime", "weight": 7}, {"source": "ships_maritime", "target": "transcription", "weight": 7}, {"source": "signatures_marks", "target": "transcription", "weight": 7}, {"source": "built_environment", "target": "cargo_trade", "weight": 6}, {"source": "built_environment", "target": "gis_mapping", "weight": 6}, {"source": "built_environment", "target": "sounds_environment", "weight": 6}, {"source": "cargo_trade", "target": "depositions", "weight": 6}, {"source": "cargo_trade", "target": "scandinavian", "weight": 6}, {"source": "collaboration", "target": "hamburg_german", "weight": 6}, {"source": "data_datasets", "target": "iiif", "weight": 6}, {"source": "data_datasets", "target": "notarial", "weight": 6}, {"source": "dutch_amsterdam", "target": "palaeography", "weight": 6}, {"source": "gazetteer", "target": "historical_maps", "weight": 6}, {"source": "gazetteer", "target": "recogito", "weight": 6}, {"source": "gis_mapping", "target": "hca_admiralty", "weight": 6}, {"source": "hamburg_german", "target": "occupational_signatures", "weight": 6}, {"source": "historical_maps", "target": "iiif", "weight": 6}, {"source": "iberian", "target": "mediterranean", "weight": 6}, {"source": "iiif", "target": "transcription", "weight": 6}, {"source": "mediterranean", "target": "signatures_marks", "weight": 6}, {"source": "palaeography", "target": "wiki_platform", "weight": 6}, {"source": "signatures_marks", "target": "textiles", "weight": 6}, {"source": "academic_events", "target": "hamburg_german", "weight": 5}, {"source": "built_environment", "target": "hca_admiralty", "weight": 5}, {"source": "collaboration", "target": "hydrology", "weight": 5}, {"source": "depositions", "target": "dutch_amsterdam", "weight": 5}, {"source": "depositions", "target": "transcription", "weight": 5}, {"source": "dutch_amsterdam", "target": "wiki_platform", "weight": 5}, {"source": "early_modern", "target": "recogito", "weight": 5}, {"source": "gis_mapping", "target": "iiif", "weight": 5}, {"source": "gis_mapping", "target": "palaeography", "weight": 5}, {"source": "hamburg_german", "target": "palaeography", "weight": 5}, {"source": "hamburg_german", "target": "scandinavian", "weight": 5}, {"source": "hamburg_german", "target": "twitterstorians", "weight": 5}, {"source": "hca_admiralty", "target": "palaeography", "weight": 5}, {"source": "hydrology", "target": "textiles", "weight": 5}, {"source": "iiif", "target": "machine_learning", "weight": 5}, {"source": "iiif", "target": "transkribus", "weight": 5}, {"source": "london", "target": "mediterranean", "weight": 5}, {"source": "london", "target": "transcription", "weight": 5}, {"source": "maphackathon", "target": "palaeography", "weight": 5}, {"source": "notarial", "target": "palaeography", "weight": 5}, {"source": "palaeography", "target": "transkribus", "weight": 5}, {"source": "recogito", "target": "ships_maritime", "weight": 5}, {"source": "signs_of_literacy", "target": "wiki_platform", "weight": 5}, {"source": "transcription", "target": "transkribus", "weight": 5}, {"source": "twitterstorians", "target": "wiki_platform", "weight": 5}], "edges_by_year": {"2016": [{"source": "academic_events", "target": "cargo_trade", "weight": 6}, {"source": "academic_events", "target": "collaboration", "weight": 4}, {"source": "academic_events", "target": "data_datasets", "weight": 4}, {"source": "academic_events", "target": "dutch_amsterdam", "weight": 7}, {"source": "academic_events", "target": "early_modern", "weight": 7}, {"source": "academic_events", "target": "gis_mapping", "weight": 4}, {"source": "academic_events", "target": "historical_maps", "weight": 4}, {"source": "academic_events", "target": "london", "weight": 5}, {"source": "academic_events", "target": "maphackathon", "weight": 3}, {"source": "academic_events", "target": "ships_maritime", "weight": 7}, {"source": "academic_events", "target": "sounds_environment", "weight": 3}, {"source": "academic_events", "target": "twitterstorians", "weight": 3}, {"source": "built_environment", "target": "cargo_trade", "weight": 4}, {"source": "built_environment", "target": "data_datasets", "weight": 10}, {"source": "built_environment", "target": "early_modern", "weight": 8}, {"source": "built_environment", "target": "gis_mapping", "weight": 4}, {"source": "built_environment", "target": "hca_admiralty", "weight": 3}, {"source": "built_environment", "target": "historical_maps", "weight": 24}, {"source": "built_environment", "target": "london", "weight": 17}, {"source": "built_environment", "target": "maphackathon", "weight": 20}, {"source": "built_environment", "target": "ships_maritime", "weight": 3}, {"source": "cargo_trade", "target": "collaboration", "weight": 6}, {"source": "cargo_trade", "target": "data_datasets", "weight": 8}, {"source": "cargo_trade", "target": "depositions", "weight": 3}, {"source": "cargo_trade", "target": "dutch_amsterdam", "weight": 27}, {"source": "cargo_trade", "target": "early_modern", "weight": 50}, {"source": "cargo_trade", "target": "hamburg_german", "weight": 16}, {"source": "cargo_trade", "target": "hca_admiralty", "weight": 9}, {"source": "cargo_trade", "target": "historical_maps", "weight": 5}, {"source": "cargo_trade", "target": "iberian", "weight": 28}, {"source": "cargo_trade", "target": "london", "weight": 36}, {"source": "cargo_trade", "target": "mediterranean", "weight": 3}, {"source": "cargo_trade", "target": "scandinavian", "weight": 3}, {"source": "cargo_trade", "target": "ships_maritime", "weight": 54}, {"source": "cargo_trade", "target": "signatures_marks", "weight": 16}, {"source": "cargo_trade", "target": "signs_of_literacy", "weight": 8}, {"source": "cargo_trade", "target": "textiles", "weight": 9}, {"source": "cargo_trade", "target": "transcription", "weight": 3}, {"source": "cargo_trade", "target": "twitterstorians", "weight": 10}, {"source": "cargo_trade", "target": "wiki_platform", "weight": 6}, {"source": "collaboration", "target": "data_datasets", "weight": 13}, {"source": "collaboration", "target": "early_modern", "weight": 28}, {"source": "collaboration", "target": "gis_mapping", "weight": 36}, {"source": "collaboration", "target": "hamburg_german", "weight": 3}, {"source": "collaboration", "target": "hca_admiralty", "weight": 5}, {"source": "collaboration", "target": "historical_maps", "weight": 98}, {"source": "collaboration", "target": "london", "weight": 43}, {"source": "collaboration", "target": "maphackathon", "weight": 75}, {"source": "collaboration", "target": "palaeography", "weight": 5}, {"source": "collaboration", "target": "ships_maritime", "weight": 4}, {"source": "collaboration", "target": "signs_of_literacy", "weight": 4}, {"source": "collaboration", "target": "sounds_environment", "weight": 14}, {"source": "collaboration", "target": "transcription", "weight": 10}, {"source": "collaboration", "target": "twitterstorians", "weight": 8}, {"source": "data_datasets", "target": "depositions", "weight": 5}, {"source": "data_datasets", "target": "dutch_amsterdam", "weight": 17}, {"source": "data_datasets", "target": "early_modern", "weight": 67}, {"source": "data_datasets", "target": "gis_mapping", "weight": 32}, {"source": "data_datasets", "target": "hamburg_german", "weight": 12}, {"source": "data_datasets", "target": "hca_admiralty", "weight": 20}, {"source": "data_datasets", "target": "historical_maps", "weight": 100}, {"source": "data_datasets", "target": "hydrology", "weight": 6}, {"source": "data_datasets", "target": "london", "weight": 63}, {"source": "data_datasets", "target": "maphackathon", "weight": 73}, {"source": "data_datasets", "target": "palaeography", "weight": 4}, {"source": "data_datasets", "target": "ships_maritime", "weight": 44}, {"source": "data_datasets", "target": "signatures_marks", "weight": 8}, {"source": "data_datasets", "target": "signs_of_literacy", "weight": 24}, {"source": "data_datasets", "target": "sounds_environment", "weight": 7}, {"source": "data_datasets", "target": "textiles", "weight": 4}, {"source": "data_datasets", "target": "twitterstorians", "weight": 9}, {"source": "data_datasets", "target": "wiki_platform", "weight": 9}, {"source": "depositions", "target": "early_modern", "weight": 9}, {"source": "depositions", "target": "hca_admiralty", "weight": 12}, {"source": "depositions", "target": "historical_maps", "weight": 3}, {"source": "depositions", "target": "london", "weight": 4}, {"source": "depositions", "target": "ships_maritime", "weight": 8}, {"source": "depositions", "target": "signatures_marks", "weight": 4}, {"source": "dutch_amsterdam", "target": "early_modern", "weight": 40}, {"source": "dutch_amsterdam", "target": "gis_mapping", "weight": 5}, {"source": "dutch_amsterdam", "target": "hamburg_german", "weight": 19}, {"source": "dutch_amsterdam", "target": "hca_admiralty", "weight": 15}, {"source": "dutch_amsterdam", "target": "historical_maps", "weight": 9}, {"source": "dutch_amsterdam", "target": "iberian", "weight": 15}, {"source": "dutch_amsterdam", "target": "london", "weight": 10}, {"source": "dutch_amsterdam", "target": "scandinavian", "weight": 5}, {"source": "dutch_amsterdam", "target": "ships_maritime", "weight": 45}, {"source": "dutch_amsterdam", "target": "signatures_marks", "weight": 8}, {"source": "dutch_amsterdam", "target": "signs_of_literacy", "weight": 5}, {"source": "dutch_amsterdam", "target": "textiles", "weight": 4}, {"source": "dutch_amsterdam", "target": "transcription", "weight": 8}, {"source": "dutch_amsterdam", "target": "twitterstorians", "weight": 24}, {"source": "early_modern", "target": "gis_mapping", "weight": 34}, {"source": "early_modern", "target": "hamburg_german", "weight": 32}, {"source": "early_modern", "target": "hca_admiralty", "weight": 34}, {"source": "early_modern", "target": "historical_maps", "weight": 115}, {"source": "early_modern", "target": "hydrology", "weight": 12}, {"source": "early_modern", "target": "iberian", "weight": 27}, {"source": "early_modern", "target": "london", "weight": 150}, {"source": "early_modern", "target": "maphackathon", "weight": 90}, {"source": "early_modern", "target": "notarial", "weight": 4}, {"source": "early_modern", "target": "palaeography", "weight": 3}, {"source": "early_modern", "target": "scandinavian", "weight": 5}, {"source": "early_modern", "target": "ships_maritime", "weight": 94}, {"source": "early_modern", "target": "signatures_marks", "weight": 19}, {"source": "early_modern", "target": "signs_of_literacy", "weight": 30}, {"source": "early_modern", "target": "sounds_environment", "weight": 23}, {"source": "early_modern", "target": "textiles", "weight": 17}, {"source": "early_modern", "target": "transcription", "weight": 5}, {"source": "early_modern", "target": "twitterstorians", "weight": 26}, {"source": "early_modern", "target": "wiki_platform", "weight": 9}, {"source": "gis_mapping", "target": "hamburg_german", "weight": 8}, {"source": "gis_mapping", "target": "hca_admiralty", "weight": 4}, {"source": "gis_mapping", "target": "historical_maps", "weight": 136}, {"source": "gis_mapping", "target": "hydrology", "weight": 5}, {"source": "gis_mapping", "target": "london", "weight": 51}, {"source": "gis_mapping", "target": "maphackathon", "weight": 70}, {"source": "gis_mapping", "target": "ships_maritime", "weight": 8}, {"source": "gis_mapping", "target": "sounds_environment", "weight": 6}, {"source": "gis_mapping", "target": "twitterstorians", "weight": 10}, {"source": "gis_mapping", "target": "wiki_platform", "weight": 7}, {"source": "hamburg_german", "target": "hca_admiralty", "weight": 7}, {"source": "hamburg_german", "target": "historical_maps", "weight": 22}, {"source": "hamburg_german", "target": "iberian", "weight": 19}, {"source": "hamburg_german", "target": "london", "weight": 6}, {"source": "hamburg_german", "target": "scandinavian", "weight": 3}, {"source": "hamburg_german", "target": "ships_maritime", "weight": 24}, {"source": "hamburg_german", "target": "textiles", "weight": 6}, {"source": "hamburg_german", "target": "twitterstorians", "weight": 4}, {"source": "hamburg_german", "target": "wiki_platform", "weight": 3}, {"source": "hca_admiralty", "target": "historical_maps", "weight": 10}, {"source": "hca_admiralty", "target": "london", "weight": 12}, {"source": "hca_admiralty", "target": "maphackathon", "weight": 4}, {"source": "hca_admiralty", "target": "notarial", "weight": 3}, {"source": "hca_admiralty", "target": "ships_maritime", "weight": 25}, {"source": "hca_admiralty", "target": "signatures_marks", "weight": 12}, {"source": "hca_admiralty", "target": "signs_of_literacy", "weight": 7}, {"source": "hca_admiralty", "target": "twitterstorians", "weight": 3}, {"source": "historical_maps", "target": "hydrology", "weight": 20}, {"source": "historical_maps", "target": "london", "weight": 209}, {"source": "historical_maps", "target": "maphackathon", "weight": 355}, {"source": "historical_maps", "target": "palaeography", "weight": 4}, {"source": "historical_maps", "target": "ships_maritime", "weight": 20}, {"source": "historical_maps", "target": "signatures_marks", "weight": 3}, {"source": "historical_maps", "target": "sounds_environment", "weight": 46}, {"source": "historical_maps", "target": "textiles", "weight": 12}, {"source": "historical_maps", "target": "twitterstorians", "weight": 9}, {"source": "historical_maps", "target": "wiki_platform", "weight": 12}, {"source": "hydrology", "target": "london", "weight": 28}, {"source": "hydrology", "target": "maphackathon", "weight": 14}, {"source": "hydrology", "target": "ships_maritime", "weight": 10}, {"source": "hydrology", "target": "sounds_environment", "weight": 4}, {"source": "iberian", "target": "london", "weight": 5}, {"source": "iberian", "target": "ships_maritime", "weight": 20}, {"source": "iberian", "target": "signatures_marks", "weight": 5}, {"source": "iberian", "target": "textiles", "weight": 8}, {"source": "iberian", "target": "transcription", "weight": 4}, {"source": "iberian", "target": "twitterstorians", "weight": 8}, {"source": "london", "target": "maphackathon", "weight": 184}, {"source": "london", "target": "palaeography", "weight": 3}, {"source": "london", "target": "ships_maritime", "weight": 59}, {"source": "london", "target": "signatures_marks", "weight": 12}, {"source": "london", "target": "signs_of_literacy", "weight": 7}, {"source": "london", "target": "sounds_environment", "weight": 48}, {"source": "london", "target": "textiles", "weight": 16}, {"source": "london", "target": "twitterstorians", "weight": 8}, {"source": "london", "target": "wiki_platform", "weight": 3}, {"source": "maphackathon", "target": "palaeography", "weight": 3}, {"source": "maphackathon", "target": "ships_maritime", "weight": 8}, {"source": "maphackathon", "target": "sounds_environment", "weight": 40}, {"source": "maphackathon", "target": "textiles", "weight": 8}, {"source": "maphackathon", "target": "twitterstorians", "weight": 7}, {"source": "maphackathon", "target": "wiki_platform", "weight": 4}, {"source": "mediterranean", "target": "ships_maritime", "weight": 3}, {"source": "palaeography", "target": "ships_maritime", "weight": 3}, {"source": "palaeography", "target": "transcription", "weight": 3}, {"source": "scandinavian", "target": "ships_maritime", "weight": 6}, {"source": "ships_maritime", "target": "signatures_marks", "weight": 29}, {"source": "ships_maritime", "target": "signs_of_literacy", "weight": 35}, {"source": "ships_maritime", "target": "textiles", "weight": 7}, {"source": "ships_maritime", "target": "twitterstorians", "weight": 8}, {"source": "ships_maritime", "target": "wiki_platform", "weight": 6}, {"source": "signatures_marks", "target": "signs_of_literacy", "weight": 15}, {"source": "signs_of_literacy", "target": "twitterstorians", "weight": 3}], "2017": [{"source": "academic_events", "target": "collaboration", "weight": 5}, {"source": "academic_events", "target": "data_datasets", "weight": 5}, {"source": "academic_events", "target": "early_modern", "weight": 3}, {"source": "academic_events", "target": "gis_mapping", "weight": 6}, {"source": "academic_events", "target": "historical_maps", "weight": 10}, {"source": "academic_events", "target": "london", "weight": 3}, {"source": "academic_events", "target": "maphackathon", "weight": 9}, {"source": "built_environment", "target": "data_datasets", "weight": 5}, {"source": "built_environment", "target": "early_modern", "weight": 3}, {"source": "built_environment", "target": "historical_maps", "weight": 20}, {"source": "built_environment", "target": "hydrology", "weight": 5}, {"source": "built_environment", "target": "london", "weight": 20}, {"source": "built_environment", "target": "maphackathon", "weight": 15}, {"source": "built_environment", "target": "sounds_environment", "weight": 4}, {"source": "cargo_trade", "target": "collaboration", "weight": 3}, {"source": "cargo_trade", "target": "data_datasets", "weight": 41}, {"source": "cargo_trade", "target": "dutch_amsterdam", "weight": 7}, {"source": "cargo_trade", "target": "early_modern", "weight": 61}, {"source": "cargo_trade", "target": "hamburg_german", "weight": 4}, {"source": "cargo_trade", "target": "hca_admiralty", "weight": 12}, {"source": "cargo_trade", "target": "historical_maps", "weight": 7}, {"source": "cargo_trade", "target": "hydrology", "weight": 3}, {"source": "cargo_trade", "target": "iberian", "weight": 3}, {"source": "cargo_trade", "target": "london", "weight": 14}, {"source": "cargo_trade", "target": "maphackathon", "weight": 6}, {"source": "cargo_trade", "target": "palaeography", "weight": 6}, {"source": "cargo_trade", "target": "ships_maritime", "weight": 58}, {"source": "collaboration", "target": "data_datasets", "weight": 18}, {"source": "collaboration", "target": "early_modern", "weight": 26}, {"source": "collaboration", "target": "gis_mapping", "weight": 19}, {"source": "collaboration", "target": "hca_admiralty", "weight": 5}, {"source": "collaboration", "target": "historical_maps", "weight": 102}, {"source": "collaboration", "target": "hydrology", "weight": 4}, {"source": "collaboration", "target": "london", "weight": 39}, {"source": "collaboration", "target": "maphackathon", "weight": 95}, {"source": "collaboration", "target": "ships_maritime", "weight": 13}, {"source": "collaboration", "target": "signatures_marks", "weight": 3}, {"source": "collaboration", "target": "sounds_environment", "weight": 11}, {"source": "collaboration", "target": "textiles", "weight": 8}, {"source": "collaboration", "target": "transcription", "weight": 26}, {"source": "collaboration", "target": "twitterstorians", "weight": 9}, {"source": "collaboration", "target": "wiki_platform", "weight": 3}, {"source": "data_datasets", "target": "dutch_amsterdam", "weight": 4}, {"source": "data_datasets", "target": "early_modern", "weight": 62}, {"source": "data_datasets", "target": "gis_mapping", "weight": 16}, {"source": "data_datasets", "target": "hamburg_german", "weight": 3}, {"source": "data_datasets", "target": "hca_admiralty", "weight": 8}, {"source": "data_datasets", "target": "historical_maps", "weight": 63}, {"source": "data_datasets", "target": "iberian", "weight": 4}, {"source": "data_datasets", "target": "london", "weight": 31}, {"source": "data_datasets", "target": "maphackathon", "weight": 53}, {"source": "data_datasets", "target": "ships_maritime", "weight": 53}, {"source": "data_datasets", "target": "wiki_platform", "weight": 3}, {"source": "depositions", "target": "hca_admiralty", "weight": 5}, {"source": "dutch_amsterdam", "target": "early_modern", "weight": 12}, {"source": "dutch_amsterdam", "target": "hamburg_german", "weight": 7}, {"source": "dutch_amsterdam", "target": "hca_admiralty", "weight": 4}, {"source": "dutch_amsterdam", "target": "iberian", "weight": 7}, {"source": "dutch_amsterdam", "target": "london", "weight": 3}, {"source": "dutch_amsterdam", "target": "mediterranean", "weight": 3}, {"source": "dutch_amsterdam", "target": "scandinavian", "weight": 4}, {"source": "dutch_amsterdam", "target": "ships_maritime", "weight": 16}, {"source": "dutch_amsterdam", "target": "signatures_marks", "weight": 3}, {"source": "early_modern", "target": "gis_mapping", "weight": 18}, {"source": "early_modern", "target": "hamburg_german", "weight": 7}, {"source": "early_modern", "target": "hca_admiralty", "weight": 16}, {"source": "early_modern", "target": "historical_maps", "weight": 58}, {"source": "early_modern", "target": "hydrology", "weight": 9}, {"source": "early_modern", "target": "iberian", "weight": 5}, {"source": "early_modern", "target": "london", "weight": 76}, {"source": "early_modern", "target": "maphackathon", "weight": 47}, {"source": "early_modern", "target": "palaeography", "weight": 11}, {"source": "early_modern", "target": "ships_maritime", "weight": 76}, {"source": "early_modern", "target": "signatures_marks", "weight": 7}, {"source": "early_modern", "target": "sounds_environment", "weight": 6}, {"source": "early_modern", "target": "textiles", "weight": 24}, {"source": "early_modern", "target": "transcription", "weight": 8}, {"source": "early_modern", "target": "twitterstorians", "weight": 16}, {"source": "early_modern", "target": "wiki_platform", "weight": 4}, {"source": "gazetteer", "target": "historical_maps", "weight": 3}, {"source": "gis_mapping", "target": "historical_maps", "weight": 77}, {"source": "gis_mapping", "target": "hydrology", "weight": 7}, {"source": "gis_mapping", "target": "london", "weight": 24}, {"source": "gis_mapping", "target": "maphackathon", "weight": 65}, {"source": "gis_mapping", "target": "signatures_marks", "weight": 3}, {"source": "gis_mapping", "target": "sounds_environment", "weight": 8}, {"source": "gis_mapping", "target": "twitterstorians", "weight": 6}, {"source": "hamburg_german", "target": "iberian", "weight": 5}, {"source": "hamburg_german", "target": "ships_maritime", "weight": 7}, {"source": "hamburg_german", "target": "signatures_marks", "weight": 3}, {"source": "hca_admiralty", "target": "iberian", "weight": 4}, {"source": "hca_admiralty", "target": "london", "weight": 9}, {"source": "hca_admiralty", "target": "ships_maritime", "weight": 13}, {"source": "hca_admiralty", "target": "signatures_marks", "weight": 5}, {"source": "hca_admiralty", "target": "transcription", "weight": 7}, {"source": "hca_admiralty", "target": "twitterstorians", "weight": 3}, {"source": "historical_maps", "target": "hydrology", "weight": 29}, {"source": "historical_maps", "target": "iiif", "weight": 3}, {"source": "historical_maps", "target": "london", "weight": 164}, {"source": "historical_maps", "target": "machine_learning", "weight": 3}, {"source": "historical_maps", "target": "maphackathon", "weight": 401}, {"source": "historical_maps", "target": "palaeography", "weight": 4}, {"source": "historical_maps", "target": "ships_maritime", "weight": 18}, {"source": "historical_maps", "target": "signatures_marks", "weight": 14}, {"source": "historical_maps", "target": "sounds_environment", "weight": 45}, {"source": "historical_maps", "target": "textiles", "weight": 5}, {"source": "historical_maps", "target": "twitterstorians", "weight": 8}, {"source": "hydrology", "target": "london", "weight": 33}, {"source": "hydrology", "target": "maphackathon", "weight": 24}, {"source": "hydrology", "target": "ships_maritime", "weight": 4}, {"source": "hydrology", "target": "signatures_marks", "weight": 3}, {"source": "hydrology", "target": "sounds_environment", "weight": 10}, {"source": "hydrology", "target": "textiles", "weight": 3}, {"source": "iberian", "target": "london", "weight": 3}, {"source": "iberian", "target": "mediterranean", "weight": 3}, {"source": "iberian", "target": "ships_maritime", "weight": 6}, {"source": "london", "target": "machine_learning", "weight": 3}, {"source": "london", "target": "maphackathon", "weight": 136}, {"source": "london", "target": "mediterranean", "weight": 4}, {"source": "london", "target": "palaeography", "weight": 3}, {"source": "london", "target": "ships_maritime", "weight": 22}, {"source": "london", "target": "signatures_marks", "weight": 14}, {"source": "london", "target": "sounds_environment", "weight": 32}, {"source": "london", "target": "textiles", "weight": 5}, {"source": "machine_learning", "target": "maphackathon", "weight": 3}, {"source": "machine_learning", "target": "sounds_environment", "weight": 3}, {"source": "maphackathon", "target": "ships_maritime", "weight": 15}, {"source": "maphackathon", "target": "signatures_marks", "weight": 12}, {"source": "maphackathon", "target": "sounds_environment", "weight": 44}, {"source": "maphackathon", "target": "textiles", "weight": 5}, {"source": "maphackathon", "target": "twitterstorians", "weight": 8}, {"source": "mediterranean", "target": "ships_maritime", "weight": 3}, {"source": "palaeography", "target": "ships_maritime", "weight": 4}, {"source": "scandinavian", "target": "ships_maritime", "weight": 4}, {"source": "ships_maritime", "target": "signatures_marks", "weight": 4}, {"source": "signatures_marks", "target": "sounds_environment", "weight": 7}, {"source": "sounds_environment", "target": "textiles", "weight": 3}, {"source": "textiles", "target": "transcription", "weight": 6}, {"source": "textiles", "target": "twitterstorians", "weight": 6}, {"source": "transcription", "target": "wiki_platform", "weight": 4}], "2018": [{"source": "academic_events", "target": "cargo_trade", "weight": 5}, {"source": "academic_events", "target": "collaboration", "weight": 15}, {"source": "academic_events", "target": "data_datasets", "weight": 24}, {"source": "academic_events", "target": "depositions", "weight": 4}, {"source": "academic_events", "target": "dutch_amsterdam", "weight": 17}, {"source": "academic_events", "target": "early_modern", "weight": 12}, {"source": "academic_events", "target": "gis_mapping", "weight": 4}, {"source": "academic_events", "target": "hca_admiralty", "weight": 9}, {"source": "academic_events", "target": "historical_maps", "weight": 3}, {"source": "academic_events", "target": "iiif", "weight": 20}, {"source": "academic_events", "target": "london", "weight": 3}, {"source": "academic_events", "target": "machine_learning", "weight": 27}, {"source": "academic_events", "target": "occupational_signatures", "weight": 3}, {"source": "academic_events", "target": "palaeography", "weight": 9}, {"source": "academic_events", "target": "recogito", "weight": 3}, {"source": "academic_events", "target": "ships_maritime", "weight": 11}, {"source": "academic_events", "target": "signatures_marks", "weight": 16}, {"source": "academic_events", "target": "signs_of_literacy", "weight": 60}, {"source": "academic_events", "target": "transcription", "weight": 5}, {"source": "academic_events", "target": "transkribus", "weight": 8}, {"source": "academic_events", "target": "twitterstorians", "weight": 10}, {"source": "cargo_trade", "target": "collaboration", "weight": 8}, {"source": "cargo_trade", "target": "data_datasets", "weight": 15}, {"source": "cargo_trade", "target": "depositions", "weight": 3}, {"source": "cargo_trade", "target": "dutch_amsterdam", "weight": 12}, {"source": "cargo_trade", "target": "early_modern", "weight": 39}, {"source": "cargo_trade", "target": "hamburg_german", "weight": 6}, {"source": "cargo_trade", "target": "hca_admiralty", "weight": 9}, {"source": "cargo_trade", "target": "iberian", "weight": 7}, {"source": "cargo_trade", "target": "london", "weight": 27}, {"source": "cargo_trade", "target": "mediterranean", "weight": 3}, {"source": "cargo_trade", "target": "notarial", "weight": 7}, {"source": "cargo_trade", "target": "occupational_signatures", "weight": 15}, {"source": "cargo_trade", "target": "palaeography", "weight": 7}, {"source": "cargo_trade", "target": "ships_maritime", "weight": 37}, {"source": "cargo_trade", "target": "signatures_marks", "weight": 37}, {"source": "cargo_trade", "target": "signs_of_literacy", "weight": 14}, {"source": "cargo_trade", "target": "textiles", "weight": 15}, {"source": "cargo_trade", "target": "textiles_glossary", "weight": 9}, {"source": "cargo_trade", "target": "transcription", "weight": 3}, {"source": "cargo_trade", "target": "twitterstorians", "weight": 4}, {"source": "cargo_trade", "target": "wiki_platform", "weight": 3}, {"source": "collaboration", "target": "data_datasets", "weight": 29}, {"source": "collaboration", "target": "depositions", "weight": 10}, {"source": "collaboration", "target": "dutch_amsterdam", "weight": 11}, {"source": "collaboration", "target": "early_modern", "weight": 43}, {"source": "collaboration", "target": "gis_mapping", "weight": 5}, {"source": "collaboration", "target": "hca_admiralty", "weight": 15}, {"source": "collaboration", "target": "iberian", "weight": 3}, {"source": "collaboration", "target": "iiif", "weight": 7}, {"source": "collaboration", "target": "london", "weight": 5}, {"source": "collaboration", "target": "machine_learning", "weight": 26}, {"source": "collaboration", "target": "occupational_signatures", "weight": 17}, {"source": "collaboration", "target": "palaeography", "weight": 12}, {"source": "collaboration", "target": "recogito", "weight": 4}, {"source": "collaboration", "target": "scandinavian", "weight": 3}, {"source": "collaboration", "target": "ships_maritime", "weight": 9}, {"source": "collaboration", "target": "signatures_marks", "weight": 26}, {"source": "collaboration", "target": "signs_of_literacy", "weight": 40}, {"source": "collaboration", "target": "textiles", "weight": 27}, {"source": "collaboration", "target": "textiles_glossary", "weight": 22}, {"source": "collaboration", "target": "transcription", "weight": 23}, {"source": "collaboration", "target": "transkribus", "weight": 15}, {"source": "collaboration", "target": "twitterstorians", "weight": 16}, {"source": "collaboration", "target": "wiki_platform", "weight": 8}, {"source": "data_datasets", "target": "depositions", "weight": 4}, {"source": "data_datasets", "target": "dutch_amsterdam", "weight": 13}, {"source": "data_datasets", "target": "early_modern", "weight": 51}, {"source": "data_datasets", "target": "gazetteer", "weight": 3}, {"source": "data_datasets", "target": "gis_mapping", "weight": 14}, {"source": "data_datasets", "target": "hamburg_german", "weight": 4}, {"source": "data_datasets", "target": "hca_admiralty", "weight": 19}, {"source": "data_datasets", "target": "historical_maps", "weight": 8}, {"source": "data_datasets", "target": "iiif", "weight": 5}, {"source": "data_datasets", "target": "london", "weight": 9}, {"source": "data_datasets", "target": "machine_learning", "weight": 33}, {"source": "data_datasets", "target": "notarial", "weight": 6}, {"source": "data_datasets", "target": "occupational_signatures", "weight": 9}, {"source": "data_datasets", "target": "palaeography", "weight": 6}, {"source": "data_datasets", "target": "ships_maritime", "weight": 39}, {"source": "data_datasets", "target": "signatures_marks", "weight": 79}, {"source": "data_datasets", "target": "signs_of_literacy", "weight": 73}, {"source": "data_datasets", "target": "textiles", "weight": 6}, {"source": "data_datasets", "target": "textiles_glossary", "weight": 4}, {"source": "data_datasets", "target": "transcription", "weight": 9}, {"source": "data_datasets", "target": "twitterstorians", "weight": 13}, {"source": "data_datasets", "target": "wiki_platform", "weight": 6}, {"source": "depositions", "target": "dutch_amsterdam", "weight": 4}, {"source": "depositions", "target": "early_modern", "weight": 13}, {"source": "depositions", "target": "hca_admiralty", "weight": 30}, {"source": "depositions", "target": "london", "weight": 5}, {"source": "depositions", "target": "notarial", "weight": 8}, {"source": "depositions", "target": "occupational_signatures", "weight": 13}, {"source": "depositions", "target": "ships_maritime", "weight": 14}, {"source": "depositions", "target": "signatures_marks", "weight": 34}, {"source": "depositions", "target": "signs_of_literacy", "weight": 10}, {"source": "dutch_amsterdam", "target": "early_modern", "weight": 27}, {"source": "dutch_amsterdam", "target": "gis_mapping", "weight": 7}, {"source": "dutch_amsterdam", "target": "hamburg_german", "weight": 13}, {"source": "dutch_amsterdam", "target": "hca_admiralty", "weight": 13}, {"source": "dutch_amsterdam", "target": "historical_maps", "weight": 3}, {"source": "dutch_amsterdam", "target": "iberian", "weight": 7}, {"source": "dutch_amsterdam", "target": "iiif", "weight": 3}, {"source": "dutch_amsterdam", "target": "london", "weight": 13}, {"source": "dutch_amsterdam", "target": "machine_learning", "weight": 3}, {"source": "dutch_amsterdam", "target": "mediterranean", "weight": 3}, {"source": "dutch_amsterdam", "target": "notarial", "weight": 6}, {"source": "dutch_amsterdam", "target": "occupational_signatures", "weight": 9}, {"source": "dutch_amsterdam", "target": "palaeography", "weight": 4}, {"source": "dutch_amsterdam", "target": "ships_maritime", "weight": 28}, {"source": "dutch_amsterdam", "target": "signatures_marks", "weight": 28}, {"source": "dutch_amsterdam", "target": "signs_of_literacy", "weight": 29}, {"source": "dutch_amsterdam", "target": "textiles", "weight": 6}, {"source": "dutch_amsterdam", "target": "transcription", "weight": 3}, {"source": "dutch_amsterdam", "target": "transkribus", "weight": 3}, {"source": "dutch_amsterdam", "target": "twitterstorians", "weight": 4}, {"source": "dutch_amsterdam", "target": "wiki_platform", "weight": 3}, {"source": "early_modern", "target": "gazetteer", "weight": 10}, {"source": "early_modern", "target": "gis_mapping", "weight": 8}, {"source": "early_modern", "target": "hamburg_german", "weight": 11}, {"source": "early_modern", "target": "hca_admiralty", "weight": 24}, {"source": "early_modern", "target": "historical_maps", "weight": 4}, {"source": "early_modern", "target": "iberian", "weight": 7}, {"source": "early_modern", "target": "iiif", "weight": 4}, {"source": "early_modern", "target": "london", "weight": 48}, {"source": "early_modern", "target": "machine_learning", "weight": 11}, {"source": "early_modern", "target": "mediterranean", "weight": 7}, {"source": "early_modern", "target": "notarial", "weight": 7}, {"source": "early_modern", "target": "occupational_signatures", "weight": 34}, {"source": "early_modern", "target": "palaeography", "weight": 12}, {"source": "early_modern", "target": "recogito", "weight": 5}, {"source": "early_modern", "target": "ships_maritime", "weight": 76}, {"source": "early_modern", "target": "signatures_marks", "weight": 97}, {"source": "early_modern", "target": "signs_of_literacy", "weight": 58}, {"source": "early_modern", "target": "textiles", "weight": 163}, {"source": "early_modern", "target": "textiles_glossary", "weight": 139}, {"source": "early_modern", "target": "transcription", "weight": 16}, {"source": "early_modern", "target": "transkribus", "weight": 4}, {"source": "early_modern", "target": "twitterstorians", "weight": 20}, {"source": "early_modern", "target": "wiki_platform", "weight": 12}, {"source": "gazetteer", "target": "gis_mapping", "weight": 4}, {"source": "gazetteer", "target": "historical_maps", "weight": 3}, {"source": "gazetteer", "target": "recogito", "weight": 6}, {"source": "gazetteer", "target": "ships_maritime", "weight": 12}, {"source": "gis_mapping", "target": "hamburg_german", "weight": 3}, {"source": "gis_mapping", "target": "historical_maps", "weight": 7}, {"source": "gis_mapping", "target": "iiif", "weight": 4}, {"source": "gis_mapping", "target": "london", "weight": 5}, {"source": "gis_mapping", "target": "machine_learning", "weight": 4}, {"source": "gis_mapping", "target": "ships_maritime", "weight": 8}, {"source": "gis_mapping", "target": "signatures_marks", "weight": 6}, {"source": "gis_mapping", "target": "signs_of_literacy", "weight": 7}, {"source": "gis_mapping", "target": "transkribus", "weight": 3}, {"source": "gis_mapping", "target": "twitterstorians", "weight": 6}, {"source": "hamburg_german", "target": "iberian", "weight": 4}, {"source": "hamburg_german", "target": "occupational_signatures", "weight": 6}, {"source": "hamburg_german", "target": "palaeography", "weight": 3}, {"source": "hamburg_german", "target": "ships_maritime", "weight": 8}, {"source": "hamburg_german", "target": "signatures_marks", "weight": 11}, {"source": "hamburg_german", "target": "signs_of_literacy", "weight": 3}, {"source": "hca_admiralty", "target": "iberian", "weight": 3}, {"source": "hca_admiralty", "target": "london", "weight": 10}, {"source": "hca_admiralty", "target": "machine_learning", "weight": 4}, {"source": "hca_admiralty", "target": "notarial", "weight": 10}, {"source": "hca_admiralty", "target": "occupational_signatures", "weight": 14}, {"source": "hca_admiralty", "target": "palaeography", "weight": 3}, {"source": "hca_admiralty", "target": "ships_maritime", "weight": 24}, {"source": "hca_admiralty", "target": "signatures_marks", "weight": 35}, {"source": "hca_admiralty", "target": "signs_of_literacy", "weight": 21}, {"source": "hca_admiralty", "target": "textiles", "weight": 3}, {"source": "hca_admiralty", "target": "textiles_glossary", "weight": 3}, {"source": "hca_admiralty", "target": "transcription", "weight": 5}, {"source": "historical_maps", "target": "london", "weight": 3}, {"source": "historical_maps", "target": "maphackathon", "weight": 5}, {"source": "historical_maps", "target": "ships_maritime", "weight": 8}, {"source": "historical_maps", "target": "signs_of_literacy", "weight": 6}, {"source": "iberian", "target": "london", "weight": 5}, {"source": "iberian", "target": "occupational_signatures", "weight": 4}, {"source": "iberian", "target": "palaeography", "weight": 3}, {"source": "iberian", "target": "ships_maritime", "weight": 4}, {"source": "iberian", "target": "signatures_marks", "weight": 7}, {"source": "iberian", "target": "signs_of_literacy", "weight": 3}, {"source": "iberian", "target": "textiles", "weight": 3}, {"source": "iiif", "target": "machine_learning", "weight": 4}, {"source": "iiif", "target": "occupational_signatures", "weight": 4}, {"source": "iiif", "target": "recogito", "weight": 3}, {"source": "iiif", "target": "signatures_marks", "weight": 13}, {"source": "iiif", "target": "signs_of_literacy", "weight": 20}, {"source": "iiif", "target": "transcription", "weight": 6}, {"source": "iiif", "target": "transkribus", "weight": 5}, {"source": "london", "target": "occupational_signatures", "weight": 8}, {"source": "london", "target": "ships_maritime", "weight": 37}, {"source": "london", "target": "signatures_marks", "weight": 15}, {"source": "london", "target": "signs_of_literacy", "weight": 18}, {"source": "london", "target": "textiles", "weight": 25}, {"source": "london", "target": "textiles_glossary", "weight": 18}, {"source": "london", "target": "transcription", "weight": 3}, {"source": "london", "target": "twitterstorians", "weight": 3}, {"source": "london", "target": "wiki_platform", "weight": 4}, {"source": "machine_learning", "target": "palaeography", "weight": 9}, {"source": "machine_learning", "target": "ships_maritime", "weight": 8}, {"source": "machine_learning", "target": "signatures_marks", "weight": 31}, {"source": "machine_learning", "target": "signs_of_literacy", "weight": 55}, {"source": "machine_learning", "target": "transcription", "weight": 7}, {"source": "machine_learning", "target": "transkribus", "weight": 7}, {"source": "machine_learning", "target": "twitterstorians", "weight": 8}, {"source": "mediterranean", "target": "ships_maritime", "weight": 5}, {"source": "mediterranean", "target": "signatures_marks", "weight": 4}, {"source": "notarial", "target": "occupational_signatures", "weight": 7}, {"source": "notarial", "target": "palaeography", "weight": 4}, {"source": "notarial", "target": "ships_maritime", "weight": 5}, {"source": "notarial", "target": "signatures_marks", "weight": 31}, {"source": "notarial", "target": "signs_of_literacy", "weight": 10}, {"source": "occupational_signatures", "target": "palaeography", "weight": 3}, {"source": "occupational_signatures", "target": "ships_maritime", "weight": 31}, {"source": "occupational_signatures", "target": "signatures_marks", "weight": 134}, {"source": "occupational_signatures", "target": "signs_of_literacy", "weight": 31}, {"source": "occupational_signatures", "target": "sounds_environment", "weight": 4}, {"source": "occupational_signatures", "target": "twitterstorians", "weight": 4}, {"source": "palaeography", "target": "ships_maritime", "weight": 7}, {"source": "palaeography", "target": "signatures_marks", "weight": 13}, {"source": "palaeography", "target": "signs_of_literacy", "weight": 27}, {"source": "palaeography", "target": "transcription", "weight": 16}, {"source": "palaeography", "target": "transkribus", "weight": 4}, {"source": "palaeography", "target": "twitterstorians", "weight": 11}, {"source": "palaeography", "target": "wiki_platform", "weight": 4}, {"source": "recogito", "target": "ships_maritime", "weight": 5}, {"source": "recogito", "target": "signs_of_literacy", "weight": 3}, {"source": "scandinavian", "target": "signatures_marks", "weight": 3}, {"source": "scandinavian", "target": "signs_of_literacy", "weight": 3}, {"source": "ships_maritime", "target": "signatures_marks", "weight": 61}, {"source": "ships_maritime", "target": "signs_of_literacy", "weight": 44}, {"source": "ships_maritime", "target": "textiles", "weight": 18}, {"source": "ships_maritime", "target": "textiles_glossary", "weight": 12}, {"source": "ships_maritime", "target": "transcription", "weight": 5}, {"source": "ships_maritime", "target": "twitterstorians", "weight": 9}, {"source": "ships_maritime", "target": "wiki_platform", "weight": 3}, {"source": "signatures_marks", "target": "signs_of_literacy", "weight": 121}, {"source": "signatures_marks", "target": "sounds_environment", "weight": 4}, {"source": "signatures_marks", "target": "textiles", "weight": 4}, {"source": "signatures_marks", "target": "textiles_glossary", "weight": 3}, {"source": "signatures_marks", "target": "transcription", "weight": 6}, {"source": "signatures_marks", "target": "transkribus", "weight": 4}, {"source": "signatures_marks", "target": "twitterstorians", "weight": 13}, {"source": "signatures_marks", "target": "wiki_platform", "weight": 3}, {"source": "signs_of_literacy", "target": "transcription", "weight": 7}, {"source": "signs_of_literacy", "target": "transkribus", "weight": 3}, {"source": "signs_of_literacy", "target": "twitterstorians", "weight": 25}, {"source": "signs_of_literacy", "target": "wiki_platform", "weight": 5}, {"source": "textiles", "target": "textiles_glossary", "weight": 144}, {"source": "textiles", "target": "transcription", "weight": 10}, {"source": "textiles", "target": "twitterstorians", "weight": 3}, {"source": "textiles", "target": "wiki_platform", "weight": 10}, {"source": "textiles_glossary", "target": "transcription", "weight": 8}, {"source": "textiles_glossary", "target": "wiki_platform", "weight": 8}, {"source": "transcription", "target": "transkribus", "weight": 5}, {"source": "transcription", "target": "twitterstorians", "weight": 8}, {"source": "transcription", "target": "wiki_platform", "weight": 3}, {"source": "twitterstorians", "target": "wiki_platform", "weight": 3}]}, "labels": {"academic_events": "Academic Events", "built_environment": "Built Environment", "cargo_trade": "Cargo & Trade", "collaboration": "Collaboration", "data_datasets": "Data & Datasets", "depositions": "Depositions", "dutch_amsterdam": "Dutch / Amsterdam", "early_modern": "Early Modern", "gazetteer": "Gazetteer", "gis_mapping": "GIS & Mapping", "hamburg_german": "Hamburg / German", "hca_admiralty": "HCA / Admiralty", "historical_maps": "Historical Maps", "hydrology": "Hydrology", "iberian": "Iberian", "iiif": "IIIF", "london": "London & Thames", "machine_learning": "Machine Learning", "maphackathon": "MapHackathon", "mediterranean": "Mediterranean", "notarial": "Notarial", "occupational_signatures": "Occupational Signatures", "palaeography": "Palaeography", "recogito": "Recogito", "scandinavian": "Scandinavian", "ships_maritime": "Ships & Maritime", "signatures_marks": "Signatures & Marks", "signs_of_literacy": "Signs of Literacy", "sounds_environment": "Sounds & Environment", "textiles": "Textiles", "textiles_glossary": "Textiles Glossary", "transcription": "Transcription", "transkribus": "Transkribus", "twitterstorians": "Twitterstorians", "wiki_platform": "Wiki Platform"}, "categories": {"project_strand": ["maphackathon", "signs_of_literacy", "textiles_glossary", "occupational_signatures"], "material_culture": ["textiles", "ships_maritime", "cargo_trade"], "geography": ["london", "dutch_amsterdam", "hamburg_german", "mediterranean", "iberian", "scandinavian"], "legal_archival": ["hca_admiralty", "depositions", "notarial"], "documents": ["signatures_marks", "palaeography", "transcription"], "spatial": ["gis_mapping", "historical_maps", "gazetteer", "hydrology", "built_environment", "sounds_environment"], "technology": ["iiif", "transkribus", "recogito", "machine_learning", "wiki_platform", "data_datasets"], "social": ["collaboration", "twitterstorians", "academic_events"], "period": ["early_modern"]}, "cat_colours": {"project_strand": "#f59e0b", "material_culture": "#ef4444", "geography": "#3b82f6", "legal_archival": "#8b5cf6", "documents": "#ec4899", "spatial": "#10b981", "technology": "#06b6d4", "social": "#f97316", "period": "#6b7280"}, "concept_to_cat": {"maphackathon": "project_strand", "signs_of_literacy": "project_strand", "textiles_glossary": "project_strand", "occupational_signatures": "project_strand", "textiles": "material_culture", "ships_maritime": "material_culture", "cargo_trade": "material_culture", "london": "geography", "dutch_amsterdam": "geography", "hamburg_german": "geography", "mediterranean": "geography", "iberian": "geography", "scandinavian": "geography", "hca_admiralty": "legal_archival", "depositions": "legal_archival", "notarial": "legal_archival", "signatures_marks": "documents", "palaeography": "documents", "transcription": "documents", "gis_mapping": "spatial", "historical_maps": "spatial", "gazetteer": "spatial", "hydrology": "spatial", "built_environment": "spatial", "sounds_environment": "spatial", "iiif": "technology", "transkribus": "technology", "recogito": "technology", "machine_learning": "technology", "wiki_platform": "technology", "data_datasets": "technology", "collaboration": "social", "twitterstorians": "social", "academic_events": "social", "early_modern": "period"}};
+
+// Info panel toggle
+document.getElementById('infoToggle').addEventListener('click', function() {
+  const panel = document.getElementById('infoPanel');
+  panel.classList.toggle('open');
+  this.textContent = panel.classList.contains('open') ? '✕ Close' : 'ℹ Methodology & Guide';
+  // Recalculate graph height after panel toggle
+  setTimeout(() => { resize(); draw(); }, 50);
+});
+
+const LABELS = DATA.labels;
+const CAT_COLOURS = DATA.cat_colours;
+const CONCEPT_CAT = DATA.concept_to_cat;
+
+// Force-directed layout
+const canvas = document.getElementById('network');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  W = rect.width;
+  H = rect.height;
+  canvas.width = W * devicePixelRatio;
+  canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+}
+resize();
+window.addEventListener('resize', () => { resize(); draw(); });
+
+// State
+let currentYear = 'all';
+let minEdgeWeight = 10;
+let selectedNode = null;
+let hoveredNode = null;
+let nodes = [];
+let edges = [];
+let zoom = 1;
+let panX = 0, panY = 0;
+let dragging = null;
+let panning = false;
+let lastMouse = {x:0, y:0};
+
+// Initialise nodes with random positions
+function initNodes() {
+  nodes = DATA.concepts.map((c, i) => {
+    const angle = (i / DATA.concepts.length) * Math.PI * 2;
+    const r = 150 + Math.random() * 100;
+    return {
+      id: c,
+      label: LABELS[c] || c,
+      cat: CONCEPT_CAT[c] || 'other',
+      x: W/2 + Math.cos(angle) * r,
+      y: H/2 + Math.sin(angle) * r,
+      vx: 0, vy: 0,
+      freq: DATA.concept_frequencies[c] || 0,
+      freqByYear: {
+        '2016': (DATA.concept_frequencies_by_year['2016'] || {})[c] || 0,
+        '2017': (DATA.concept_frequencies_by_year['2017'] || {})[c] || 0,
+        '2018': (DATA.concept_frequencies_by_year['2018'] || {})[c] || 0,
+      }
+    };
+  });
+}
+
+function getEdges() {
+  let src;
+  if (currentYear === 'all') {
+    src = DATA.edges;
+  } else {
+    src = DATA.edges_by_year[currentYear] || [];
+  }
+  return src.filter(e => e.weight >= minEdgeWeight);
+}
+
+function updateEdges() {
+  edges = getEdges();
+}
+
+// Force simulation
+function simulate() {
+  const nodeMap = {};
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Repulsion between all nodes
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i+1; j < nodes.length; j++) {
+      const a = nodes[i], b = nodes[j];
+      let dx = a.x - b.x, dy = a.y - b.y;
+      let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      let force = 2000 / (dist * dist);
+      a.vx += (dx/dist) * force;
+      a.vy += (dy/dist) * force;
+      b.vx -= (dx/dist) * force;
+      b.vy -= (dy/dist) * force;
+    }
+  }
+
+  // Attraction along edges
+  edges.forEach(e => {
+    const a = nodeMap[e.source], b = nodeMap[e.target];
+    if (!a || !b) return;
+    let dx = b.x - a.x, dy = b.y - a.y;
+    let dist = Math.sqrt(dx*dx + dy*dy) || 1;
+    let force = (dist - 120) * 0.005 * Math.log(e.weight + 1);
+    a.vx += (dx/dist) * force;
+    a.vy += (dy/dist) * force;
+    b.vx -= (dx/dist) * force;
+    b.vy -= (dy/dist) * force;
+  });
+
+  // Center gravity
+  nodes.forEach(n => {
+    n.vx += (W/2 - n.x) * 0.001;
+    n.vy += (H/2 - n.y) * 0.001;
+  });
+
+  // Apply velocity with damping
+  nodes.forEach(n => {
+    if (n === dragging) return;
+    n.vx *= 0.85;
+    n.vy *= 0.85;
+    n.x += n.vx;
+    n.y += n.vy;
+    // Keep in bounds
+    n.x = Math.max(40, Math.min(W-40, n.x));
+    n.y = Math.max(40, Math.min(H-40, n.y));
+  });
+}
+
+function getNodeRadius(n) {
+  let f = currentYear === 'all' ? n.freq : n.freqByYear[currentYear] || 0;
+  return Math.max(6, Math.sqrt(f) * 1.2);
+}
+
+function draw() {
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  ctx.translate(panX, panY);
+  ctx.scale(zoom, zoom);
+
+  const nodeMap = {};
+  nodes.forEach(n => nodeMap[n.id] = n);
+
+  // Connected nodes for selected
+  const connectedToSelected = new Set();
+  if (selectedNode) {
+    edges.forEach(e => {
+      if (e.source === selectedNode.id) connectedToSelected.add(e.target);
+      if (e.target === selectedNode.id) connectedToSelected.add(e.source);
+    });
+  }
+
+  // Draw edges
+  edges.forEach(e => {
+    const a = nodeMap[e.source], b = nodeMap[e.target];
+    if (!a || !b) return;
+    let alpha = Math.min(0.6, e.weight / 100);
+    let width = Math.max(0.5, Math.log(e.weight) * 0.8);
+
+    if (selectedNode) {
+      if (e.source === selectedNode.id || e.target === selectedNode.id) {
+        alpha = 0.8;
+        width *= 1.5;
+      } else {
+        alpha = 0.05;
+      }
+    }
+    if (hoveredNode && !selectedNode) {
+      if (e.source === hoveredNode.id || e.target === hoveredNode.id) {
+        alpha = 0.8;
+        width *= 1.5;
+      }
+    }
+
+    ctx.strokeStyle = `rgba(148,163,184,${alpha})`;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.stroke();
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    let r = getNodeRadius(n);
+    let col = CAT_COLOURS[n.cat] || '#6b7280';
+    let alpha = 1;
+
+    if (selectedNode) {
+      if (n === selectedNode) {
+        r *= 1.3;
+      } else if (connectedToSelected.has(n.id)) {
+        alpha = 0.9;
+      } else {
+        alpha = 0.15;
+      }
+    }
+
+    // Node circle
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, r, 0, Math.PI*2);
+    ctx.fill();
+
+    // Highlight ring
+    if (n === hoveredNode || n === selectedNode) {
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r + 2, 0, Math.PI*2);
+      ctx.stroke();
+    }
+
+    // Label
+    let fontSize = Math.max(9, Math.min(13, r * 0.9));
+    ctx.font = `${fontSize}px 'Segoe UI', system-ui, sans-serif`;
+    ctx.fillStyle = alpha < 0.3 ? `rgba(226,232,240,${alpha})` : '#e2e8f0';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.label, n.x, n.y + r + fontSize + 2);
+    ctx.globalAlpha = 1;
+  });
+
+  ctx.restore();
+}
+
+// Interaction
+function getNodeAt(mx, my) {
+  const x = (mx - panX) / zoom;
+  const y = (my - panY) / zoom;
+  let closest = null, closestDist = Infinity;
+  nodes.forEach(n => {
+    const r = getNodeRadius(n) + 5;
+    const d = Math.sqrt((n.x-x)**2 + (n.y-y)**2);
+    if (d < r && d < closestDist) {
+      closest = n;
+      closestDist = d;
+    }
+  });
+  return closest;
+}
+
+canvas.addEventListener('mousedown', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const node = getNodeAt(mx, my);
+  if (node) {
+    dragging = node;
+  } else {
+    panning = true;
+    lastMouse = {x: e.clientX, y: e.clientY};
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+
+  if (dragging) {
+    dragging.x = (mx - panX) / zoom;
+    dragging.y = (my - panY) / zoom;
+    dragging.vx = 0;
+    dragging.vy = 0;
+  } else if (panning) {
+    panX += e.clientX - lastMouse.x;
+    panY += e.clientY - lastMouse.y;
+    lastMouse = {x: e.clientX, y: e.clientY};
+  } else {
+    const node = getNodeAt(mx, my);
+    hoveredNode = node;
+    canvas.style.cursor = node ? 'pointer' : 'grab';
+
+    const tooltip = document.getElementById('tooltip');
+    if (node && !selectedNode) {
+      const freq = currentYear === 'all' ? node.freq : node.freqByYear[currentYear] || 0;
+      const conns = edges.filter(e => e.source === node.id || e.target === node.id).length;
+      tooltip.innerHTML = `<strong>${node.label}</strong><br>${freq} tweets &middot; ${conns} connections`;
+      tooltip.style.display = 'block';
+      tooltip.style.left = (mx + 15) + 'px';
+      tooltip.style.top = (my - 10) + 'px';
+    } else {
+      tooltip.style.display = 'none';
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (dragging) {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+    // If barely moved, treat as click
+    selectNode(dragging);
+    dragging = null;
+  }
+  panning = false;
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+  const oldZoom = zoom;
+  zoom *= e.deltaY < 0 ? 1.1 : 0.9;
+  zoom = Math.max(0.3, Math.min(3, zoom));
+  panX = mx - (mx - panX) * (zoom / oldZoom);
+  panY = my - (my - panY) * (zoom / oldZoom);
+}, {passive: false});
+
+function selectNode(node) {
+  selectedNode = node;
+  // Sync dropdown
+  const dd = document.getElementById('conceptSearch');
+  if (dd) dd.value = node ? node.id : '';
+  document.getElementById('overviewPanel').style.display = node ? 'none' : 'block';
+  const detail = document.getElementById('nodeDetail');
+  if (node) {
+    detail.classList.add('active');
+    document.getElementById('nodeTitle').textContent = node.label;
+    document.getElementById('nodeCategory').textContent = node.cat.replace(/_/g, ' ');
+
+    // Year bars
+    const maxFreq = Math.max(node.freqByYear['2016'], node.freqByYear['2017'], node.freqByYear['2018'], 1);
+    let barsHtml = '';
+    ['2016','2017','2018'].forEach(yr => {
+      const f = node.freqByYear[yr];
+      const pct = (f / maxFreq) * 100;
+      barsHtml += `<div class="year-bar"><span class="year-bar-label">${yr}</span><div class="year-bar-fill" style="width:${pct}%;max-width:200px;"></div><span class="year-bar-value">${f} tweets</span></div>`;
+    });
+    document.getElementById('yearBars').innerHTML = barsHtml;
+
+    // Connected edges
+    const nodeEdges = edges
+      .filter(e => e.source === node.id || e.target === node.id)
+      .map(e => ({
+        other: e.source === node.id ? e.target : e.source,
+        weight: e.weight
+      }))
+      .sort((a,b) => b.weight - a.weight);
+
+    let edgesHtml = '';
+    nodeEdges.forEach(e => {
+      edgesHtml += `<li><span>${LABELS[e.other] || e.other}</span><span class="weight">${e.weight}</span></li>`;
+    });
+    document.getElementById('nodeEdges').innerHTML = edgesHtml || '<li style="color:var(--muted)">No connections at this threshold</li>';
+  } else {
+    detail.classList.remove('active');
+  }
+}
+
+document.getElementById('backToOverview').addEventListener('click', e => {
+  e.preventDefault();
+  selectedNode = null;
+  selectNode(null);
+});
+
+// Controls
+document.querySelectorAll('.year-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentYear = btn.dataset.year;
+    updateEdges();
+    updateOverview();
+  });
+});
+
+// Concept search dropdown
+const conceptSelect = document.getElementById('conceptSearch');
+const sortedConcepts = [...DATA.concepts].sort((a,b) => (LABELS[a]||a).localeCompare(LABELS[b]||b));
+sortedConcepts.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c;
+  opt.textContent = LABELS[c] || c;
+  conceptSelect.appendChild(opt);
+});
+conceptSelect.addEventListener('change', e => {
+  const id = e.target.value;
+  if (!id) { selectedNode = null; selectNode(null); return; }
+  const node = nodes.find(n => n.id === id);
+  if (node) {
+    selectNode(node);
+    // Pan to center the selected node
+    panX = W/2 - node.x * zoom;
+    panY = H/2 - node.y * zoom;
+  }
+});
+
+document.getElementById('minWeight').addEventListener('input', e => {
+  minEdgeWeight = parseInt(e.target.value);
+  document.getElementById('minWeightVal').textContent = minEdgeWeight;
+  updateEdges();
+  updateOverview();
+});
+
+// Legend
+function buildLegend() {
+  const legend = document.getElementById('legend');
+  const catLabels = {
+    project_strand: 'Project Strands',
+    material_culture: 'Material Culture',
+    geography: 'Geography',
+    legal_archival: 'Legal/Archival',
+    documents: 'Documents',
+    spatial: 'Spatial',
+    technology: 'Technology',
+    social: 'Social/Academic',
+    period: 'Period',
+  };
+  let html = '';
+  Object.entries(catLabels).forEach(([cat, label]) => {
+    html += `<div class="legend-item"><div class="legend-dot" style="background:${CAT_COLOURS[cat]}"></div>${label}</div>`;
+  });
+  legend.innerHTML = html;
+}
+
+// Overview panel
+function updateOverview() {
+  const topEdgesList = document.getElementById('topEdges');
+  const sorted = [...edges].sort((a,b) => b.weight - a.weight).slice(0, 15);
+  let html = '';
+  sorted.forEach(e => {
+    html += `<li><span>${LABELS[e.source] || e.source} ↔ ${LABELS[e.target] || e.target}</span><span class="weight">${e.weight}</span></li>`;
+  });
+  topEdgesList.innerHTML = html;
+
+  // Year shifts
+  const shiftsDiv = document.getElementById('yearShifts');
+  // Compare concept frequencies between years
+  const f16 = DATA.concept_frequencies_by_year['2016'];
+  const f17 = DATA.concept_frequencies_by_year['2017'];
+  const f18 = DATA.concept_frequencies_by_year['2018'];
+
+  let shifts = [];
+  DATA.concepts.forEach(c => {
+    const v16 = f16[c] || 0, v17 = f17[c] || 0, v18 = f18[c] || 0;
+    // Rising: much more in 2018 than 2016
+    const change = v18 - v16;
+    const pctChange = v16 > 0 ? (change / v16 * 100) : (v18 > 10 ? 999 : 0);
+    if (Math.abs(change) > 10) {
+      shifts.push({concept: c, v16, v17, v18, change, pctChange});
+    }
+  });
+  shifts.sort((a,b) => b.change - a.change);
+
+  let shtml = '<p style="font-size:0.8rem;color:var(--muted);margin-bottom:0.5rem;">2016 → 2018 frequency change:</p>';
+  shifts.slice(0, 6).forEach(s => {
+    shtml += `<div class="change-item"><span class="emerging">▲ ${LABELS[s.concept]}</span>: ${s.v16} → ${s.v18} (+${s.change})</div>`;
+  });
+  shifts.slice(-6).reverse().forEach(s => {
+    shtml += `<div class="change-item"><span class="fading">▼ ${LABELS[s.concept]}</span>: ${s.v16} → ${s.v18} (${s.change})</div>`;
+  });
+  shiftsDiv.innerHTML = shtml;
+}
+
+// Animation loop
+initNodes();
+updateEdges();
+buildLegend();
+updateOverview();
+
+let simSteps = 0;
+function tick() {
+  if (simSteps < 300 || dragging) {
+    simulate();
+    simSteps++;
+  }
+  draw();
+  requestAnimationFrame(tick);
+}
+tick();
+
+// Re-simulate when edges change
+const origUpdateEdges = updateEdges;
+updateEdges = function() {
+  origUpdateEdges();
+  simSteps = 0;
+};
+</script>
+</body>
+</html>

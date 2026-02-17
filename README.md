@@ -18,10 +18,11 @@ The first analysis covers the [@Marinelivesorg](https://x.com/Marinelivesorg) Tw
 
 **[View all dashboards →](https://ai-and-history-collaboratory.github.io/social-media-analysis/)**
 
-Two dashboards are available:
+Three dashboards are available:
 
 - **[Content Explorer](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/)** — volume trends, hashtags, mentions, domains, content mix, and top tweets with year filtering
 - **[Project Biography: Topic Evolution](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/topics.html)** — quarterly NMF topic modelling showing how the project's thematic focus shifted over thirteen years
+- **[Concept Network Explorer](https://ai-and-history-collaboratory.github.io/social-media-analysis/twitter/concepts.html)** — interactive force-directed graph mapping how 35 hand-curated concepts co-occur in tweets (2016–2018 sample), with year-by-year comparison
 
 ### Summary statistics
 
@@ -51,6 +52,7 @@ Two dashboards are available:
 | `index.html` | Landing page linking to all dashboards |
 | `twitter/index.html` | Content Explorer dashboard (self-contained, no server required) |
 | `twitter/topics.html` | Project Biography: Topic Evolution dashboard |
+| `twitter/concepts.html` | Concept Network Explorer — interactive co-occurrence graph (2016–2018) |
 | `twitter/extract_twitter_archive.py` | Python script to extract and aggregate data from a Twitter archive |
 | `twitter/dashboard_data.json` | Pre-aggregated JSON data powering the Content Explorer |
 
@@ -75,7 +77,7 @@ python twitter/extract_twitter_archive.py path/to/twitter-archive.zip twitter/da
 
 This repository is maintained by [Colin Greenstreet](https://github.com/Addaci) as part of the **AI + History Collaboratory**, an initiative exploring how AI tools can support historical research workflows.
 
-The dashboards and extraction scripts were created collaboratively with [Claude](https://claude.ai) (Anthropic) using Claude's Cowork mode, and Anthropic Data plugin commands for data exploration and dashboard creation.
+The dashboards and extraction scripts were created collaboratively with [Claude](https://claude.ai) (Anthropic) using Claude's Cowork mode.
 
 ## Licence
 
