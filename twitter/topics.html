@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>@Marinelivesorg — Project Biography: Topic Evolution 2012–2025</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" as="script">
 <style>
 :root {
     --bg: #0f172a;
@@ -206,67 +206,80 @@ const TOPIC_TERMS = {"0": ["amp", "textiles", "signatures", "looking", "markes",
 const TOPIC_EXAMPLES = {"0": [{"text": "@pkmarmor @JRHTweed @SilkDamask \" callico &amp; dimity window curtains\" https://t.co/vzEgw9Vf3u", "date": "2018-08-05"}, {"text": "@EdmondJSmith @humcommons (4) &amp; see how gps formed &amp; cross-invite &amp; fertilise &amp; die - supernova, slow &amp; steady or bust?", "date": "2016-12-07"}, {"text": "CLOATHE GOWNE OF A VIOLET COLOR:  Memorial function of clothing for a London &amp; Stowmarket merchant &amp; skinner, dealing in cloth, &amp; tradeing with the East Indies, &amp; possibly also the Levant &amp; Guineaclothier #C17textilesglossary https://t.co/IXIYLZ54h6 ; https://", "date": "2018-01-08"}, {"text": "@SLevelt Centred on 1650s, but back into 1640s %&amp; forward to 1660s", "date": "2016-11-14"}, {"text": "@RunawaySlavesGB @DrJulieHardwick (4) We are at the mercy of the recording, survivability &amp; discoverability of records. What was the relationship betw. Sir William Batten &amp; his servant Mingoe \"a Negroe\", to whom he bequeathed \u00a310, &amp; the keeping of his lighthouses at H", "date": "2020-09-28"}], "1": [{"text": "C17th London in the archives of the High Court of Admiralty: https://t.co/KGHyA7mpZ6", "date": "2014-09-04"}, {"text": "When is a Dutchman a Dutchman? Linguistic confusion in the High Court of Admiralty, 1653: https://t.co/QLAlGthIqT https://t.co/1ylnXMIa3p", "date": "2016-11-18"}, {"text": "@cath_fletcher Submariscillion may be deputy marshall of English High Court of Admiralty from context. Is that plausible?", "date": "2020-11-07"}, {"text": "@dbellingradt For all Snitger references in our online set of English High Court of Admiralty depositions see: https://t.co/WWC4fBtMVV", "date": "2021-03-19"}, {"text": "Call to academic publishers - Guide to the High Court of Admiralty. http://t.co/Zav3QO0q", "date": "2013-01-21"}], "2": [{"text": "Early Modern Thames uses for @Mapbox? #maphackathon https://t.co/bP2MzxnV4v", "date": "2017-01-14"}, {"text": "@OrdnanceSurvey Here is the link to Gabor's leaflet + layers for Early Modern Thames @DavidRumseyMaps @NYPLMaps https://t.co/AT4Gg5AOwt", "date": "2017-01-30"}, {"text": "Can anyone point us to work on ontologies of early modern sound to structure an Early Modern Thames sound library? #maphackathon https://t.co/8D4DIyqrCN", "date": "2016-12-16"}, {"text": "Share your knowledge of early modern geography - annotate early modern admiralty records: http://t.co/lBaGZARwSZ", "date": "2013-05-10"}, {"text": "Early modern fishery experts? Help please with \"wilchens, weeles and lamprills\" http://t.co/YdT7KWyTkO http://t.co/NqLFAGdWtL", "date": "2014-10-15"}], "3": [{"text": "MarineLives wiki back up and running", "date": "2016-06-01"}, {"text": "@Brodie_Waddell @wjbfarrell @historywomble Some comparator stats for the Marinelives wiki: https://t.co/ZOcvtwDUZV https://t.co/2Raka3AC4s", "date": "2016-06-15"}, {"text": "The MarineLives wiki is up and running again thanks to the help of @rowanbeentje:  https://t.co/ZOcvtwDUZV", "date": "2015-12-11"}, {"text": "How to create a biography on the MarineLives wiki: https://t.co/MuuwtP33D0 https://t.co/E7CgcRGahA", "date": "2016-07-31"}, {"text": "Thw MarineLives wiki has reached 17,000+ pages: http://t.co/I5sftAlyJP", "date": "2015-07-10"}], "4": [{"text": "@onslies It is in dutch but I stagger through it!", "date": "2016-04-03"}, {"text": "@Prof_Murdoch Are you familiar with Dutch regulation of Flandrian ships using Dutch harbours to seize English ships? http://t.co/3IE31b4ELP", "date": "2015-02-18"}, {"text": "English drummer who spoke Dutch enlisted as interpreter by English Master at Battavia for discussions with Dutch: https://t.co/7EmmITHfJe", "date": "2015-12-02"}, {"text": "English tried to bribe Dutch and German sailors at Dover in 1654 - can you translate dutch for us? http://t.co/yfHDbTAk0y", "date": "2014-06-30"}, {"text": "@historywomble @SocialHistoryOx @earlymodernjohn (6) + ca. 400 Dutch mariners: can compare London mariners with Dutch marke/sig with Dutch", "date": "2016-10-23"}], "5": [{"text": "An entrepreneurial judge for #maphackathon @katieparker18th @helenrogers19c @MOLArchaeology @TidewayLondon @klokantech @BL_Labs @mpdavies https://t.co/b3tRuBLhxv", "date": "2017-02-09"}, {"text": "Barbican before the Blitz: https://t.co/Rw8GDOZ2cf #maphackathon .@maphackathon https://t.co/GzoIc4EHOd", "date": "2017-01-08"}, {"text": "For those interested in #maphackathon https://t.co/fcr6T4HawK", "date": "2016-12-16"}, {"text": "Get on #maphackathon invitations list now! Bookings for EM Thames #maphackathon open on Thursday Jan 12th 2017: https://t.co/oKN4KJE7hf https://t.co/YpT1lwTMtv", "date": "2017-01-03"}, {"text": "@mejackreed Issue 4: Maphackathon/cartopop @PJHatfield @DavidUnderdown9 @mentionthewar @klokantech #maphackathon https://t.co/9Hj3RxFXwy https://t.co/Kuz4YlW2w4", "date": "2017-01-29"}], "6": [{"text": "@sociablephysics @JamesKneale @walled_city Here are some of our data: https://t.co/LB5G2LzMPW https://t.co/30YSEQ1dyX", "date": "2016-12-02"}, {"text": "@FjordrInfo Have sent you the data", "date": "2016-11-21"}, {"text": "@Adam_Crymble Where is the broad community engaged in discussion of data standards, contributing georeferenced data, mashing the data?", "date": "2016-11-29"}, {"text": "@kgeographer @RichardOfSussex @kintopp @amaliasl @RMGreenwich @WHGazetteer We have journey data for all the 250 ships in a complex database for economics of commercial ships. A lot more journey data can be excavated for other 2000+ ships, but without data on tons burthen", "date": "2018-09-17"}, {"text": "@HortenseDAlton Our sparse data does not show many mariner/merchant marriages. But we do have some data on wives of mariners in Wrapping in early C17th", "date": "2019-09-10"}], "7": [{"text": "@EricKetelaar @SiobhanTalbott @Prize_Papers @historywomble @PlymPrivateer @caycarbs Thanks Eric. Will get back to you.", "date": "2021-09-26"}, {"text": "@NorfolkRO @essexarchive @KeyToThePast @DevonHeritage @DorsetArchives @SouthamptonCC @twarchive @Hullhistorynews @kent_archives @bristolarchives Will do - many thanks for responding @johnlsheridan @DavidUnderdown9", "date": "2018-08-30"}, {"text": "@onslies Thanks. Will get in touch with him", "date": "2015-08-01"}, {"text": "@BelaudDuBellay Excellent - many thanks for this", "date": "2015-11-01"}, {"text": "@DrIanFriel Ina, much appreciated and thanks", "date": "2014-03-21"}], "8": [{"text": "So is this a \"G\"? #Signsofliteracy #SOLM2018 https://t.co/9QkF0hjrih", "date": "2018-09-26"}, {"text": "Two markes and a signature from three French mariners of Caen, Normandy (1657) - The 45 year old master uses a marke, as does a 30 year old mariner, but the youngest mariner, a 20 year old, signs his name #Occupationalsignatures https://t.co/u2IPnljqWY @voetnoot @mark_hailwood ht", "date": "2018-03-14"}, {"text": "Block capital signature of a twenty year old maid servant [1641] #Signsofliteracy https://t.co/cZE5CIj5DX", "date": "2019-11-01"}, {"text": "Proud and painstaking signature of William Tomkins, a fifty two year old mariner and pilot (1656) #Signsofliteracy #SOLM2018 https://t.co/1iek1D7ZfH", "date": "2018-09-27"}, {"text": "Five signatures by twenty-two year old individuals in the 1650s, which put my own sixty year old's handwriting to shame https://t.co/PUr3fkYF7h #Signsofliteracy https://t.co/NQnDjb9tl1", "date": "2018-08-02"}], "9": [{"text": "@RoperLou @ThiagoKrause2 @UkNatArcRes @JoplingNathan I will also be around in London", "date": "2023-03-06"}, {"text": "The London Tube map is a powerful meme - here London places which have faded from our memories: https://t.co/oZ9P6kuiAP #maphackathon https://t.co/R44iCg3yRq", "date": "2016-12-23"}, {"text": "@angela_mcshane The manuscript reference is from a London coastal port book, with the hats shipped from Newcastle to London, March 8th, 1657, stating \"which came formerly from London now returned\": https://t.co/qeOB45CdE0 #C17textilesglossary https://t.co/5hgTerZ2Pc", "date": "2018-01-24"}, {"text": "@ThiagoKrause2 Indeed. Prominent Portuguese Jew in London", "date": "2024-03-27"}, {"text": "POOLE TO LONDON:  Joane of London Abraham Hyat master...William Dewye ind 45 tonns of tobacco pipe clay, London coastal port book, Feb, 24 1657/8: https://t.co/czcTneH78f @VerrierRd20 https://t.co/udqpUsggx7", "date": "2018-01-22"}], "10": [{"text": "@new_antiquarian Hi. If you follow @Marinelivesorg we will be in touch by Twitter DM", "date": "2021-10-14"}, {"text": "@beslayed @17thCenturyLady Will do. Please follow @Marinelivesorg and we wil DM you", "date": "2021-10-14"}, {"text": "@MsKerryApps @MirandaKaufmann @RoperLou @Prize_Papers Have sent you a Twitter DM", "date": "2021-10-14"}, {"text": "@MsKerryApps @MirandaKaufmann @RoperLou @Prize_Papers Hi Kerry, I'll Twitter DM you with some more details", "date": "2021-10-14"}, {"text": "@kellielounds Brilliant. If you follow @Marinelivesorg I will DM you email address and get in touch with him at weekend", "date": "2021-10-13"}], "11": [{"text": "HCA 13/56. not HCA 13/76", "date": "2022-03-03"}, {"text": "@Prof_Murdoch I will also give you access to ML metadata for HCA 13/71, HCA 13/72 (partial), HCA 15/7 (instpapers, pt), HCA 13/47 (ActBk)", "date": "2013-08-01"}, {"text": "Correction. The test page is HCA 13/72 f.1r. not HCA 13/71 f.1r", "date": "2022-03-05"}, {"text": "Check out our transcription website: HCA 13/71 f.219v, HCA 13/71 f.220r http://t.co/OoPYb01P", "date": "2012-12-06"}, {"text": "@Canadian_Errant For example 29 separate shipwright depositions in HCA 13/73 [https://t.co/oafBtOTnei]; 12 in HCA 13/72 [https://t.co/dqAt7nyepN]; 15 in HCA 13/71 [https://t.co/3F8xkSUozM], etc", "date": "2018-01-05"}], "12": [{"text": "@CBarnacles But you missed out the ship and the poem!! Verse: \"There is a ship we understand,\". https://t.co/yVkXXQpiMW https://t.co/x6oAeRaSaL", "date": "2018-01-22"}, {"text": "Master of Hamburgh ship the Mercury reports witnessed the \"officers of the banke in Hamburgh\" pay for the ship (1653) http://t.co/Nb4ZTXiFJr", "date": "2015-08-23"}, {"text": "Silver carried by ship (Peru to Panama), by mules (Panama to Porto Vela), and by ship again (Porto Vela to Cadiz) : https://t.co/6tI30SfycS", "date": "2015-10-20"}, {"text": "@Brodie_Waddell @DunsPitcus @judyzara (3) Transporting goods in your own partowned ship manages risk because you and your partners chose the ship master, properly know the condition of ship and manage other aspects of operational risk", "date": "2020-11-25"}, {"text": "ONE: Time for some data (A) Ship burthen (tons) by years of deposition in which ship is mentioned (B) Age of ship by year of deposition in which ship is mentioned (C) Tons burthen per man by years of deposition in which ship is mentioned https://t.co/ClxU0DBGxV", "date": "2024-04-14"}], "13": [{"text": "Great 3D simulations - a must see https://t.co/x0K4IcTJhs", "date": "2018-06-18"}, {"text": "@zeegeschiedenis @sneuperdokkum @JBHist  Would be great. See http://t.co/OXs5szjBTH and http://t.co/3iqABspmlI", "date": "2014-01-13"}, {"text": "@heathertweed Great. Great. great. Ideas for sources of open-source sound amples @mprove @MrOliverHill @cgspence", "date": "2016-12-13"}, {"text": "@helga_j Looks great - much relieved", "date": "2017-08-15"}, {"text": "Great project, great results. We encourage you all to volunteer https://t.co/a2cKWhCW4b", "date": "2018-09-13"}], "14": [{"text": "@DrIanFriel  Thanks for your enquiry about the MarineLives summer programme - would be delighted if you can join us", "date": "2014-05-12"}, {"text": "@genghiskuhn Introducing you to @_beneze_  your team facilitator on the MarineLives summer programme", "date": "2014-05-29"}, {"text": "MarineLives summer 2015 transcription programme: http://t.co/XGap3Egijb http://t.co/fVC7nTTYBs", "date": "2015-05-31"}, {"text": "Looking for level of interest in blogging the MarineLives Summer Programme over next twelve weeks? Programme-Lite?", "date": "2014-05-29"}, {"text": "One final place available on the MarineLives Summer Programme: http://t.co/whv3XhWCVC", "date": "2014-05-14"}]};
 const COLORS = ["#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabed4", "#469990", "#dcbeff", "#9A6324", "#800000", "#aaffc3", "#808000"];
 
-// ---- Stacked area chart ----
-const stackedCtx = document.getElementById('stackedChart').getContext('2d');
-const stackedChart = new Chart(stackedCtx, {
-    type: 'line',
-    data: {
-        labels: QUARTERS,
-        datasets: DATASETS.map(d => ({
-            ...d,
-            pointRadius: 0,
-            tension: 0.3,
-            fill: 'origin'
-        }))
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-            legend: {
-                position: 'bottom',
-                labels: {
-                    color: '#94a3b8',
-                    font: { size: 10 },
-                    boxWidth: 12,
-                    padding: 8,
-                    usePointStyle: true
-                }
-            },
-            tooltip: {
-                callbacks: {
-                    title: function(items) {
-                        const q = items[0].label;
-                        const count = TWEET_COUNTS[q] || 0;
-                        return q + ' (' + count + ' tweets)';
-                    },
-                    label: function(ctx) {
-                        return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
+// ---- Deferred initialisation: load Chart.js then render ----
+function loadChartJS(callback) {
+    const s = document.createElement('script');
+    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    s.onload = callback;
+    document.head.appendChild(s);
+}
+
+// Shared chart defaults: disable all animations
+const NO_ANIM = { animation: false, transitions: { active: { animation: { duration: 0 } } } };
+
+let sparkChart;
+
+function initStackedChart() {
+    const ctx = document.getElementById('stackedChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: QUARTERS,
+            datasets: DATASETS.map(d => ({
+                ...d,
+                pointRadius: 0,
+                tension: 0.3,
+                fill: 'origin'
+            }))
+        },
+        options: {
+            ...NO_ANIM,
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#94a3b8',
+                        font: { size: 10 },
+                        boxWidth: 12,
+                        padding: 8,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        title: function(items) {
+                            const q = items[0].label;
+                            const count = TWEET_COUNTS[q] || 0;
+                            return q + ' (' + count + ' tweets)';
+                        },
+                        label: function(ctx) {
+                            return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
+                        }
                     }
                 }
-            }
-        },
-        scales: {
-            x: {
-                ticks: { color: '#94a3b8', font: { size: 9 }, maxRotation: 45 },
-                grid: { color: 'rgba(255,255,255,0.05)' }
             },
-            y: {
-                stacked: true,
-                ticks: {
-                    color: '#94a3b8',
-                    callback: v => v + '%'
+            scales: {
+                x: {
+                    ticks: { color: '#94a3b8', font: { size: 9 }, maxRotation: 45 },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
                 },
-                grid: { color: 'rgba(255,255,255,0.05)' },
-                title: { display: true, text: 'Topic share (%)', color: '#94a3b8' }
+                y: {
+                    stacked: true,
+                    ticks: {
+                        color: '#94a3b8',
+                        callback: v => v + '%'
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    title: { display: true, text: 'Topic share (%)', color: '#94a3b8' }
+                }
             }
         }
-    }
-});
+    });
+}
 
-// ---- Sparkline chart (single topic highlight) ----
-let sparkChart;
 function initSparkChart(topicIdx) {
     const data = DATASETS[topicIdx].data;
     if (sparkChart) sparkChart.destroy();
@@ -287,6 +300,7 @@ function initSparkChart(topicIdx) {
             }]
         },
         options: {
+            ...NO_ANIM,
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
@@ -337,7 +351,7 @@ function initSparkChart(topicIdx) {
     });
 }
 
-// ---- Topic grid ----
+// ---- Topic grid (renders immediately, no Chart.js needed) ----
 const grid = document.getElementById('topicGrid');
 for (let i = 0; i < Object.keys(TOPIC_LABELS).length; i++) {
     const card = document.createElement('div');
@@ -353,8 +367,11 @@ for (let i = 0; i < Object.keys(TOPIC_LABELS).length; i++) {
     grid.appendChild(card);
 }
 
-// ---- Heatmap ----
+// ---- Heatmap (lazy-loaded when scrolled into view) ----
+let heatmapBuilt = false;
 function buildHeatmap() {
+    if (heatmapBuilt) return;
+    heatmapBuilt = true;
     const wrapper = document.getElementById('heatmapWrapper');
     let html = '<table class="heatmap"><thead><tr><th class="row-header">Topic</th>';
     QUARTERS.forEach(q => { html += '<th>' + q.replace('-', '<br>') + '</th>'; });
@@ -376,10 +393,27 @@ function buildHeatmap() {
     html += '</tbody></table>';
     wrapper.innerHTML = html;
 }
-buildHeatmap();
 
-// Initialise with topic 3 (MarineLives Wiki & Project) as default
-initSparkChart(3);
+// Observe heatmap section — only build when visible
+const heatmapObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            buildHeatmap();
+            heatmapObserver.disconnect();
+        }
+    });
+}, { rootMargin: '200px' });
+heatmapObserver.observe(document.getElementById('heatmapWrapper'));
+
+// ---- Boot sequence: load Chart.js async, then render charts in stages ----
+loadChartJS(function() {
+    // Stage 1: Main stacked chart (the hero visual)
+    initStackedChart();
+    // Stage 2: Sparkline deferred by one frame to avoid blocking
+    requestAnimationFrame(function() {
+        initSparkChart(3);
+    });
+});
 </script>
 </body>
 </html>
