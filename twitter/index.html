@@ -477,9 +477,10 @@
             const filtered = getFilteredData(year);
             document.getElementById('kpi-total').textContent = formatNumber(filtered.total_tweets);
             document.getElementById('kpi-original').textContent = formatNumber(filtered.original_tweets);
-            document.getElementById('kpi-hashtags').textContent = formatNumber(filtered.top_hashtags.length);
-            document.getElementById('kpi-mentions').textContent = formatNumber(filtered.top_mentions.length);
-            document.getElementById('kpi-domains').textContent = formatNumber(filtered.top_domains.length);
+            // Use stored totals for "all", array length for per-year (which shows how many distinct items that year)
+            document.getElementById('kpi-hashtags').textContent = formatNumber(year === 'all' ? DATA.unique_hashtags : filtered.top_hashtags.length);
+            document.getElementById('kpi-mentions').textContent = formatNumber(year === 'all' ? DATA.unique_mentions : filtered.top_mentions.length);
+            document.getElementById('kpi-domains').textContent = formatNumber(year === 'all' ? DATA.top_domains.length : filtered.top_domains.length);
             document.getElementById('kpi-media').textContent = formatNumber(filtered.with_media);
         }
 
