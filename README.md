@@ -68,7 +68,7 @@ python twitter/extract_twitter_archive.py path/to/twitter-archive.zip twitter/da
 
 This repository is maintained by [Colin Greenstreet](https://github.com/Addaci) as part of the **AI + History Collaboratory**, an initiative exploring how AI tools can support historical research workflows.
 
-The dashboards and extraction scripts were created collaboratively with [Claude](https://claude.ai) (Anthropic) using Claude's Cowork mode.
+The dashboards and extraction scripts were created collaboratively with [Claude](https://claude.ai) (Anthropic) using Claude's Cowork mode, and Anthropic Data plugin commands for data exploration and dashboard creation.
 
 ## Licence
 
