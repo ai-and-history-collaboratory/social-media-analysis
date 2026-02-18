@@ -14,7 +14,7 @@ Each analysis includes:
 
 ## Twitter / X
 
-The first analysis covers the [@Marinelivesorg](https://x.com/Marinelivesorg) Twitter account (est. July 2012), which has been the public voice of the MarineLives project for over a decade.
+The first analysis covers the [@Marinelivesorg](https://x.com/Marinelivesorg) Twitter account (est. July 2012), which has been the public voice of the MarineLives project for over a decade. It has now been superseded by the [@marinelives.bsky.social](https://bsky.app/profile/marinelives.bsky.social) Bluesky account (est. 2024).
 
 **[View all dashboards →](https://ai-and-history-collaboratory.github.io/social-media-analysis/)**
 
